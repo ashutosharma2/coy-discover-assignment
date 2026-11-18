@@ -12,15 +12,19 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "reset": "node scripts/reset.mjs"
+    "reset": "node scripts/reset.mjs",
+    "avatars": "node scripts/generate-avatars.mjs"
   },
   "dependencies": {
+    "motion": "14.14.0",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "0.0.1"
   },
   "devDependencies": {
+    "@dicebear/core": "9.4.2",
+    "@dicebear/lorelei": "9.4.2",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "^26",
     "@types/react": "^19",

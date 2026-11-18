@@ -4,8 +4,8 @@
 
 - **Scenario:** Coy Discover is a swipe-based Discover tab, built as a take-home for the Coy SDE intern role. It must only match on a mutual like and never reveal who liked the user before that.
 - **Obstacle:** the privacy guarantees live in a few SQL queries, one transaction and one allowlist function. Without pictures it's hard to see where a like is stored, what reaches the browser and where a match is decided.
-- **Action:** one diagram per view, drawn from the code as it is after the backend phase (commit `cedb7fa`). Solid lines and boxes are built; dashed ones are planned.
-- **Result:** you can follow a swipe from the request to the committed rows, see exactly which fields reach the browser, what happens on a double tap or a changed swipe, and how the database is seeded and reset. Section 12 lists each way a like could leak and what stops it.
+- **Action:** one diagram per view, drawn from the code as it is after the Discover UI phase. Solid lines and boxes are built; dashed ones are outside the app.
+- **Result:** you can follow a swipe from the moment a finger lets go to the committed rows, see exactly which fields reach the browser, what happens on a double tap, a changed swipe or a lost reply, and how the database is seeded and reset. Section 12 lists each way a like could leak and what stops it.
 - **Troubleshooting:** the diagrams are only useful while they're accurate, so they're updated at the end of every phase, alongside the README.
 
 **Contents**
@@ -22,14 +22,16 @@
 10. [A double tap, then a changed swipe](#10-a-double-tap-then-a-changed-swipe)
 11. [Seeding and reset](#11-seeding-and-reset)
 12. [Ways a like could leak, and what stops each one](#12-ways-a-like-could-leak-and-what-stops-each-one)
-13. [The Discover UI (planned)](#13-the-discover-ui-planned)
-14. [Tests](#14-tests)
+13. [The Discover UI](#13-the-discover-ui)
+14. [A swipe in the browser](#14-a-swipe-in-the-browser)
+15. [When the answer is unknown](#15-when-the-answer-is-unknown)
+16. [Tests](#16-tests)
 
 ---
 
 ## 1. System context
 
-Who and what Coy Discover deals with. The brief has no sign-in, so there's one logged-in user. Coy's real app isn't connected: this is a standalone app with no access to Coy's code. Until the Discover UI is built, the API is reached with curl and the tests.
+Who and what Coy Discover deals with. The brief has no sign-in, so there's one logged-in user. Coy's real app isn't connected: this is a standalone app with no access to Coy's code.
 
 ```mermaid
 flowchart LR
@@ -44,15 +46,15 @@ flowchart LR
         DB[("SQLite<br/>data/coy.db")]
     end
 
-    User -. "swipes" .-> UI
-    UI -. "fetch" .-> API
+    User -- "swipes" --> UI
+    UI -- "fetch" --> API
     Client --> API
     API --> DB
     Reviewer -- "npm install, npm run dev" --> App
     Coy ~~~ App
 
-    class UI,Coy planned
-    classDef planned stroke-dasharray: 5 5
+    class Coy outside
+    classDef outside stroke-dasharray: 5 5
 ```
 
 Coy's app is drawn dashed and unconnected on purpose: nothing links the two.
@@ -68,7 +70,7 @@ flowchart LR
     Reset["npm run reset<br/>scripts/reset.mjs"]
 
     subgraph Node["One Node.js process: next dev or next start"]
-        Pages["Pages<br/>/ is a placeholder today"]
+        Pages["The page at /<br/>sends the app shell and avatars"]
         Handlers["Route handlers<br/>src/app/api/*/route.ts"]
         Server["Server modules<br/>src/lib/server/*<br/>marked server-only"]
         Conn["One SQLite connection<br/>kept on globalThis"]
@@ -77,7 +79,7 @@ flowchart LR
     File[("data/coy.db<br/>gitignored")]
 
     Browser --> Pages
-    Browser -. "planned: the Discover UI calls the API" .-> Handlers
+    Browser -- "the Discover UI calls the API" --> Handlers
     Curl --> Handlers
     Handlers --> Server --> Conn --> File
     Reset -- "deletes the file;<br/>the next request re-seeds" --> File
@@ -236,7 +238,7 @@ sequenceDiagram
     D->>DB: COMMIT
     D-->>R: ok, matched true
     R-->>B: 200, matched true
-    Note over B: It's a match! screen (planned)
+    Note over B: It's a match! screen
 ```
 
 ## 8. How a swipe is decided
@@ -340,39 +342,82 @@ flowchart TD
 | Error messages that depend on the other person | Fixed 400, 404 and 409 messages | Test: identical 409 bodies |
 | Swiping as someone else | The server fixes who "me" is; the body can't name the swiper | Test: a `fromId` in the body is ignored |
 | Guessing an endpoint such as `/likes` | Three API routes, none of which returns swipes | `next build` lists the three routes |
-| Database or seed code shipped to the browser | `server-only` on every server module; nothing in `public/` | A client import failed the build (checked once, 2026-11-17) |
+| Database or seed code shipped to the browser | `server-only` on every server module; only the avatars are in `public/` | A client import failed the build (2026-11-17); a scan of the built browser files found no seed data (2026-11-18) |
 | Timing a request | A pass never looks up their like; a like already returns the answer | Not tested; reasoned from the code |
 
-## 13. The Discover UI (planned)
+## 13. The Discover UI
 
-Not built yet. The API calls on the right exist; everything dashed is still to be designed in step 2, including the drag gesture, the animation and the avatars.
+Everything that has to survive a tab switch lives in `AppShell`, above the tabs ([ADR-006](adr/006-two-tabs-deck-above-them.md)). The browser holds only public profile fields and the server's answers.
 
 ```mermaid
 flowchart TB
-    subgraph Shell["App shell with a tab bar"]
-        Home["Home tab<br/>blank, as the brief asks"]
-        Discover["Discover tab"]
+    subgraph Shell["AppShell: state that survives switching tabs"]
+        DeckState["useDiscover<br/>the deck, fetched once per page load"]
+        MatchState["useMatches<br/>fetched each time Matches opens"]
     end
 
-    Discover --> Deck["Card deck<br/>one card at a time"]
-    Deck -- "drag right or Like" --> SwipeApi["POST /api/swipe"]
-    Deck -- "drag left or Pass" --> SwipeApi
-    SwipeApi -- "matched true" --> MatchScreen["It's a match! screen"]
-    Deck -- "no cards left" --> Empty["Empty state"]
-    Deck -- "on load" --> FeedApi["GET /api/feed"]
-    Discover --> MatchesView["Matches view"]
-    MatchesView --> MatchesApi["GET /api/matches"]
+    Shell --> Tabs["TabBar<br/>Home (blank) and Discover"]
+    Shell --> Deck["SwipeDeck<br/>top card is profiles[0], next card underneath"]
+    Shell --> Album["MatchesView<br/>the Matches side of Discover"]
+    Shell --> MatchScreen["MatchScreen<br/>only after the server says matched"]
+    Deck --> Card["SwipeCard<br/>Motion drag, postmarks, fly-off"]
 
-    class Home,Discover,Deck,MatchScreen,Empty,MatchesView planned
-    classDef planned stroke-dasharray: 5 5
-    style Shell stroke-dasharray: 5 5
+    DeckState --> Reducer["deck.ts<br/>what each event does to the deck"]
+    DeckState --> Flow["swipe-flow.ts<br/>retries an unknown result"]
+    Flow --> Client["api.ts<br/>reads each response"]
+    DeckState --> Client
+    MatchState --> Client
+    Client --> Api["/api/feed, /api/swipe, /api/matches"]
 ```
 
-## 14. Tests
+## 14. A swipe in the browser
 
-32 Vitest tests, run with `npm test`. Three deliberate bugs (no shuffle, likers sorted first, a changed swipe overwriting the first) each made tests fail before the code was restored.
+The card leaves straight away, but it stays in the deck's state until the server confirms the swipe. The match screen waits for both the answer and the end of the animation.
+
+```mermaid
+sequenceDiagram
+    participant U as You
+    participant C as SwipeCard
+    participant H as useDiscover
+    participant A as /api/swipe
+
+    U->>C: let go past 30% of the width, or flick
+    C->>H: swipe(profile, action)
+    Note over C: Card flies off. Next card shows, locked.
+    H->>A: POST profileId and action
+    A-->>H: 200, matched true or false
+    C-->>H: fly-off finished
+    H->>H: remove profiles[0]
+    alt matched true
+        H-->>U: It's a match! screen
+    else matched false
+        H-->>U: next card unlocks
+    end
+```
+
+## 15. When the answer is unknown
+
+A failed request doesn't say whether the swipe was saved. Sending the same swipe again is safe, because a repeat gets the original answer ([ADR-007](adr/007-unknown-swipe-sends-same-swipe-again.md)).
+
+```mermaid
+flowchart TD
+    Send["POST /api/swipe"] --> Answer{"What came back?"}
+    Answer -- "200" --> Saved["Remove the card,<br/>show the match if there is one"]
+    Answer -- "409" --> Stands["The first swipe stands:<br/>fetch the feed and matches again"]
+    Answer -- "404" --> Refresh["The database was reset:<br/>fetch the feed again"]
+    Answer -- "400" --> Back
+    Answer -- "no reply, timeout or 5xx" --> Used{"3 attempts used?"}
+    Used -- no --> Wait["Wait 0.5 s, then 1.5 s"]
+    Wait --> Send
+    Used -- yes --> Back["Bring the card back:<br/>Not saved. Check your connection and swipe again."]
+```
+
+## 16. Tests
+
+62 Vitest tests, run with `npm test`. Seven deliberate bugs each made tests fail before the code was restored: no shuffle, likers sorted first, a changed swipe overwriting the first, no retry, a card removed before the server answered, a 500 treated as final, and a swipe threshold of almost nothing.
 
 | File | Tests | What it covers |
 |---|---|---|
 | [tests/discover.test.ts](../tests/discover.test.ts) | 17 | The logic on an in-memory database: seeding, feed contents and fields, the shuffle and its fairness, every swipe rule, matches |
 | [tests/routes.test.ts](../tests/routes.test.ts) | 15 | The HTTP layer on a temporary database file: status codes, bodies, headers, a `fromId` in the body, persistence across a restart, reset |
+| [tests/client.test.ts](../tests/client.test.ts) | 30 | The browser logic: reading each response, retries, the deck's state, the swipe threshold, and an avatar file for every profile |
