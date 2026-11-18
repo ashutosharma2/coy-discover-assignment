@@ -1,0 +1,436 @@
+/* The pigeon's world behind the deck. Everything here sits behind the app and ignores touches. */
+
+.scene {
+  --drag: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.scene-off .scene-desk,
+.scene-off .scene-chart {
+  display: none;
+}
+
+.scene-stars {
+  background-repeat: repeat;
+  inset: -40px;
+  position: absolute;
+}
+
+.scene-stars-far {
+  background-image:
+    radial-gradient(1.2px 1.2px at 24px 38px, #8fa0dd, transparent),
+    radial-gradient(1px 1px at 130px 92px, #aebde6, transparent),
+    radial-gradient(1.4px 1.4px at 212px 22px, #8fa0dd, transparent),
+    radial-gradient(1px 1px at 70px 168px, #aebde6, transparent),
+    radial-gradient(1.2px 1.2px at 186px 196px, #8fa0dd, transparent);
+  background-size: 250px 230px;
+  transform: translateX(calc(var(--drag) * -8px));
+}
+
+.scene-stars-near {
+  animation: scene-twinkle 7s ease-in-out infinite;
+  background-image:
+    radial-gradient(1.8px 1.8px at 60px 70px, #f4e6b8, transparent),
+    radial-gradient(1.5px 1.5px at 290px 210px, #dfe7ff, transparent),
+    radial-gradient(2px 2px at 330px 40px, #f4e6b8, transparent);
+  background-size: 410px 330px;
+  transform: translateX(calc(var(--drag) * -18px));
+}
+
+@keyframes scene-twinkle {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Phones and tablets: the desk and chart share a strip above the card. */
+
+.scene-desk,
+.scene-chart {
+  overflow: visible;
+  position: absolute;
+}
+
+.scene-desk {
+  height: calc(var(--scene-band) + 28px);
+  left: max(6px, calc(50% - 13.5rem));
+  max-width: 62%;
+  top: 56px;
+  width: calc((var(--scene-band) + 28px) * 1.65);
+}
+
+.scene-chart {
+  height: calc(var(--scene-band) - 6px);
+  max-width: 37%;
+  right: max(10px, calc(50% - 13rem));
+  top: 66px;
+  transform: translateX(calc(var(--drag) * -5px)) rotate(2deg);
+  width: calc((var(--scene-band) - 6px) * 1.5);
+}
+
+@media (max-width: 959px) and (max-height: 719px), (max-width: 339px) {
+  .scene-desk,
+  .scene-chart {
+    display: none;
+  }
+}
+
+/* Wide screens: the desk stands to the left of the card and the chart hangs to the right. */
+
+@media (min-width: 960px) {
+  .scene-desk {
+    bottom: 0;
+    height: auto;
+    left: max(20px, calc(25% - 20rem));
+    max-width: none;
+    top: auto;
+    width: min(27rem, calc(50% - 13rem - 40px));
+  }
+
+  .scene-chart {
+    height: auto;
+    max-width: none;
+    right: max(28px, calc(25% - 18rem));
+    top: 12%;
+    width: min(23rem, calc(50% - 13rem - 56px));
+  }
+}
+
+/* The pigeon: each pose names where the parts should be, and CSS moves them there. */
+
+.m-body,
+.m-head,
+.m-wing,
+.m-held,
+.m-gaze {
+  transition: transform 620ms cubic-bezier(0.45, 0.05, 0.25, 1);
+}
+
+.m-head {
+  transform-origin: 140px 90px;
+}
+
+.m-wing-l {
+  transform-origin: 108px 102px;
+}
+
+.m-wing-r {
+  transform-origin: 172px 102px;
+}
+
+.m-body {
+  animation: m-breathe 5.2s ease-in-out infinite;
+  transform-origin: 140px 150px;
+}
+
+@keyframes m-breathe {
+  50% {
+    scale: 1.012 0.988;
+  }
+}
+
+.m-follow {
+  transform: translateX(calc(var(--drag) * 2.2px));
+}
+
+.m-lid {
+  animation: m-blink 6.1s linear infinite;
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  transform: scaleY(0);
+}
+
+@keyframes m-blink {
+  0%,
+  94%,
+  100% {
+    transform: scaleY(0);
+  }
+
+  97% {
+    transform: scaleY(1);
+  }
+}
+
+.m-happy {
+  opacity: 0;
+}
+
+.m-held {
+  opacity: 0;
+  transition:
+    transform 620ms cubic-bezier(0.45, 0.05, 0.25, 1),
+    opacity 240ms ease;
+}
+
+.m-held-card {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+.m-held-back,
+.m-held-note {
+  opacity: 0;
+}
+
+.m-hearts {
+  opacity: 0;
+}
+
+.m-pile {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+/* Reach for the next postcard on the left pile. */
+[data-pose="reach"] .m-body { transform: translateX(-5px) rotate(-3deg); }
+[data-pose="reach"] .m-head { transform: rotate(-11deg) translateY(4px); }
+[data-pose="reach"] .m-gaze { transform: translate(-2.6px, 2px); }
+[data-pose="reach"] .m-wing-l { transform: rotate(38deg) translate(-8px, 5px); }
+[data-pose="reach"] .m-held { opacity: 1; transform: translate(-68px, 2px) scale(0.92); }
+
+/* Hold it up and read it. */
+[data-pose="read"] .m-head,
+[data-pose="flip"] .m-head { transform: translateY(5px) rotate(3deg); }
+[data-pose="read"] .m-gaze,
+[data-pose="flip"] .m-gaze { transform: translateY(2.6px); }
+[data-pose="read"] .m-wing-l,
+[data-pose="flip"] .m-wing-l { transform: rotate(-30deg) translate(6px, -8px); }
+[data-pose="read"] .m-wing-r,
+[data-pose="flip"] .m-wing-r { transform: rotate(30deg) translate(-6px, -8px); }
+[data-pose="read"] .m-held,
+[data-pose="flip"] .m-held { opacity: 1; transform: translateY(-9px); }
+
+/* Turn it over to read the other side. */
+[data-pose="flip"] .m-held-card { animation: m-flip 950ms ease-in-out both; }
+[data-pose="flip"] .m-held-back,
+[data-pose="flip"] .m-held-note { animation: m-show-back 950ms steps(1) both; }
+[data-pose="flip"] .m-held-face { animation: m-hide-front 950ms steps(1) both; }
+
+@keyframes m-flip {
+  0%,
+  100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.04); }
+}
+
+@keyframes m-show-back {
+  0%, 49% { opacity: 0; }
+  50%, 100% { opacity: 1; }
+}
+
+@keyframes m-hide-front {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* File it on the right pile. */
+[data-pose="file"] .m-body { transform: translateX(5px) rotate(3deg); }
+[data-pose="file"] .m-head { transform: rotate(11deg) translateY(4px); }
+[data-pose="file"] .m-gaze { transform: translate(2.6px, 2px); }
+[data-pose="file"] .m-wing-r { transform: rotate(-40deg) translate(10px, 5px); }
+[data-pose="file"] .m-held { opacity: 1; transform: translate(72px, -2px) rotate(5deg) scale(0.92); }
+
+/* Put a passed postcard aside on the far left. */
+[data-pose="aside"] .m-body { transform: translateX(-7px) rotate(-5deg); }
+[data-pose="aside"] .m-head { transform: rotate(-13deg) translateY(4px); }
+[data-pose="aside"] .m-gaze { transform: translate(-2.8px, 2px); }
+[data-pose="aside"] .m-wing-l { transform: rotate(52deg) translate(-12px, 6px); }
+[data-pose="aside"] .m-held { opacity: 1; transform: translate(-112px, 15px) rotate(-10deg) scale(0.88); }
+
+/* Look up at the stars. */
+[data-pose="look"] .m-head,
+[data-pose="point"] .m-head,
+[data-pose="wait"] .m-head,
+[data-pose="pin"] .m-head { transform: rotate(10deg) translateY(-4px); }
+[data-pose="look"] .m-gaze,
+[data-pose="point"] .m-gaze,
+[data-pose="wait"] .m-gaze,
+[data-pose="pin"] .m-gaze { transform: translate(2.5px, -2.6px); }
+
+/* Point at a star, or hold a liked postcard up to the chart. */
+[data-pose="point"] .m-wing-r,
+[data-pose="pin"] .m-wing-r { transform: rotate(-118deg) translate(8px, -6px); }
+[data-pose="pin"] .m-held { opacity: 1; transform: translate(52px, -66px) rotate(-14deg) scale(0.9); }
+
+/* Think it over while a swipe is being saved. */
+[data-pose="wait"] .m-wing-r { transform: rotate(44deg) translate(-16px, -24px); }
+
+/* The stars aligned. */
+[data-pose="joy"] .m-head { transform: translateY(-5px); }
+[data-pose="joy"] .m-eyes { opacity: 0; }
+[data-pose="joy"] .m-happy { opacity: 1; }
+[data-pose="joy"] .m-wing-l { transform: rotate(98deg) translate(-8px, -4px); }
+[data-pose="joy"] .m-wing-r { transform: rotate(-98deg) translate(8px, -4px); }
+[data-pose="joy"] .m-hearts { animation: m-hearts 1.8s ease-out both; }
+[data-pose="joy"] .m-body { animation: m-hop 620ms ease-in-out 3; }
+
+@keyframes m-hearts {
+  0% { opacity: 0; transform: translateY(16px); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-22px); }
+}
+
+@keyframes m-hop {
+  50% { translate: 0 -6px; }
+}
+
+/* The chart. */
+
+.chart-link {
+  opacity: 0;
+  stroke: #f4d98a;
+  stroke-dasharray: 1.5 6;
+  stroke-linecap: round;
+  stroke-width: 2.4;
+  transition: opacity 700ms ease;
+}
+
+.chart-link.is-on {
+  opacity: 0.85;
+}
+
+.chart-star-glow {
+  fill: #ffd76e;
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.chart-star-shape {
+  fill: #9aa8e0;
+  transition: fill 500ms ease;
+}
+
+.chart-star-0 .chart-star-shape { animation: scene-twinkle 5s ease-in-out infinite; }
+.chart-star-1 .chart-star-shape { animation: scene-twinkle 7s ease-in-out 1.4s infinite; }
+.chart-star-2 .chart-star-shape { animation: scene-twinkle 6s ease-in-out 2.6s infinite; }
+
+.chart-star.is-lit .chart-star-shape {
+  animation: none;
+  fill: #ffe08c;
+}
+
+.chart-star.is-lit .chart-star-glow {
+  opacity: 0.3;
+}
+
+.chart-heart {
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+
+.chart-heart.is-on {
+  opacity: 1;
+}
+
+.chart-heart polyline {
+  fill: none;
+  stroke: #ff9a9a;
+  stroke-dasharray: 1.5 6;
+  stroke-linecap: round;
+  stroke-width: 2.8;
+}
+
+.chart-heart path {
+  fill: #ffc2b8;
+}
+
+.scene-flyer {
+  background: #f2c14e;
+  border: 2px solid #18120f;
+  border-radius: 2px;
+  height: 26px;
+  left: -19px;
+  opacity: 0;
+  position: absolute;
+  top: -13px;
+  width: 38px;
+}
+
+/* The stars aligning on the match screen. */
+
+.match-sky {
+  height: 170%;
+  left: -35%;
+  overflow: visible;
+  pointer-events: none;
+  position: absolute;
+  top: -38%;
+  width: 170%;
+}
+
+.match-sky-line {
+  animation: match-line 900ms ease 900ms both;
+  fill: none;
+  stroke: #ffe9b0;
+  stroke-dasharray: 2 10;
+  stroke-linecap: round;
+  stroke-width: 3.5;
+}
+
+.match-sky-star {
+  animation: match-star 420ms cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  fill: #ffe08c;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.match-card rect {
+  fill: #fbfaf4;
+  stroke: #18120f;
+  stroke-width: 3;
+}
+
+.match-card path {
+  fill: none;
+  stroke: #18120f;
+  stroke-linecap: round;
+  stroke-width: 2.5;
+}
+
+.match-card-left {
+  animation: match-card-left 900ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.match-card-right {
+  animation: match-card-right 900ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes match-card-left {
+  0% { opacity: 0; transform: translate(-60px, 170px) rotate(-16deg); }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(134px, 170px) rotate(6deg); }
+}
+
+@keyframes match-card-right {
+  0% { opacity: 0; transform: translate(380px, 170px) rotate(16deg); }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(186px, 170px) rotate(-6deg); }
+}
+
+@keyframes match-star {
+  from { opacity: 0; transform: scale(0.2); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes match-line {
+  from { opacity: 0; }
+  to { opacity: 0.9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene *,
+  .match-sky * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .match-card {
+    display: none;
+  }
+}

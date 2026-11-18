@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef } from "react";
 import type { PublicProfile } from "@/lib/types";
 import { Postmark, postmarkDate } from "./Postmark";
+import { MatchConstellation } from "./scene/MatchConstellation";
 import { StampAvatar } from "./StampAvatar";
 
 interface MatchScreenProps {
@@ -38,6 +39,7 @@ export function MatchScreen({ profile, onKeepSwiping, onSeeMatches }: MatchScree
       transition={{ duration: 0.2 }}
     >
       <div className="match-stamp">
+        <MatchConstellation />
         <StampAvatar src={profile.avatarUrl} name={profile.name} />
         <motion.div
           className="match-mark"

@@ -56,7 +56,8 @@ export function MatchesView({ matches, retry, showDeck }: MatchesViewProps) {
               date={postmarkDate(new Date(match.matchedAt))}
             />
             <h2 className="album-name">
-              {match.name}, {match.age}
+              {match.name}
+              <span className="album-age">{match.age}</span>
             </h2>
             <p className="album-place">{match.college ? `${match.college}, ${match.city}` : match.city}</p>
           </li>

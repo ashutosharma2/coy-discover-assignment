@@ -12,7 +12,22 @@
   --rule: #b4c8dc;
   --letterbox: #d3262f;
   --letterbox-deep: #a81b24;
+  --display: var(--font-rozha), Georgia, serif;
+  --hand: var(--font-kalam), cursive;
+  --scene-band: 0px;
   color-scheme: dark;
+}
+
+@media (min-height: 720px) and (min-width: 340px) {
+  :root {
+    --scene-band: clamp(80px, calc(100dvh - 640px), 112px);
+  }
+}
+
+@media (min-width: 960px) {
+  :root {
+    --scene-band: 0px;
+  }
 }
 
 html,
@@ -21,9 +36,9 @@ body {
 }
 
 body {
-  background: var(--ink);
+  background: radial-gradient(120% 90% at 50% 18%, #26328f 0%, var(--ink) 52%, var(--ink-deep) 100%) fixed;
   color: var(--on-ink);
-  font-family: var(--font-mukta), system-ui, sans-serif;
+  font-family: var(--font-anek), system-ui, sans-serif;
   overflow: hidden;
   overscroll-behavior: none;
 }
@@ -47,6 +62,7 @@ body {
   flex: 1;
   flex-direction: column;
   min-height: 0;
+  position: relative;
 }
 
 .discover {
@@ -58,7 +74,9 @@ body {
   max-width: 46rem;
   min-height: 0;
   padding: 12px 16px 0;
+  position: relative;
   width: 100%;
+  z-index: 1;
 }
 
 .panel {
@@ -75,6 +93,8 @@ body {
   background: var(--ink-deep);
   display: flex;
   justify-content: center;
+  position: relative;
+  z-index: 1;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -86,8 +106,10 @@ body {
   flex: 1;
   flex-direction: column;
   font-size: 13px;
-  font-weight: 500;
+  font-stretch: 92%;
+  font-weight: 600;
   gap: 2px;
+  letter-spacing: 0.01em;
   max-width: 11rem;
   padding: 9px 0 7px;
 }
@@ -115,8 +137,9 @@ body {
   color: var(--on-ink-muted);
   cursor: pointer;
   flex: 1;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 16px;
+  font-stretch: 90%;
+  font-weight: 600;
   min-height: 38px;
 }
 
@@ -130,6 +153,7 @@ body {
 
 .deck-stage {
   flex: 1;
+  margin-block-start: var(--scene-band);
   margin-inline: auto;
   max-height: 42rem;
   max-width: 26rem;
@@ -168,7 +192,8 @@ body {
   cursor: pointer;
   display: inline-flex;
   flex: 1;
-  font-size: 17px;
+  font-size: 19px;
+  font-stretch: 92%;
   font-weight: 700;
   gap: 8px;
   justify-content: center;
@@ -254,36 +279,73 @@ body {
 
 .letter-to {
   color: var(--pen-muted);
-  font-family: var(--font-kalam), cursive;
-  font-size: 16px;
-  line-height: 18px;
+  font-family: var(--hand);
+  font-size: 15px;
+  line-height: 16px;
 }
 
 .letter-name {
-  font-family: var(--font-kalam), cursive;
-  font-size: 32px;
+  align-items: baseline;
+  display: flex;
+  font-family: var(--display);
+  font-size: 40px;
+  font-weight: 400;
+  gap: 9px;
+  letter-spacing: -0.005em;
+  line-height: 44px;
+}
+
+.letter-age {
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  font-family: var(--font-anek), sans-serif;
+  font-size: 17px;
+  font-stretch: 80%;
   font-weight: 700;
-  line-height: 36px;
+  line-height: 20px;
+  padding: 1px 6px 0;
+  position: relative;
+  top: -8px;
 }
 
 .letter-place {
   color: var(--pen-muted);
+  display: flex;
+  flex-direction: column;
   font-size: 15px;
+  font-stretch: 92%;
   font-weight: 500;
-  line-height: 20px;
+  line-height: 19px;
+}
+
+.letter-college {
+  color: var(--pen);
+  font-weight: 700;
 }
 
 .letter-bio {
   background-image: repeating-linear-gradient(transparent 0 25px, var(--rule) 25px 26px);
-  font-family: var(--font-kalam), cursive;
-  font-size: 18px;
+  font-family: var(--hand);
+  font-size: 19px;
   line-height: 26px;
 }
 
 .letter-interests {
-  color: var(--pen-muted);
-  font-size: 14px;
-  line-height: 19px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 5px;
+}
+
+.letter-interests li {
+  background: rgb(255 255 255 / 42%);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  color: var(--pen);
+  font-size: 13px;
+  font-stretch: 86%;
+  font-weight: 600;
+  line-height: 18px;
+  padding: 1px 7px 0;
 }
 
 .letter-mark {
@@ -330,8 +392,12 @@ body {
   }
 
   .letter-name {
-    font-size: 26px;
-    line-height: 30px;
+    font-size: 28px;
+    line-height: 32px;
+  }
+
+  .letter-age {
+    top: -4px;
   }
 }
 
@@ -381,16 +447,16 @@ body {
 }
 
 .sheet-title {
-  font-family: var(--font-kalam), cursive;
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 36px;
+  font-family: var(--display);
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 40px;
 }
 
 .sheet-text {
   color: var(--pen-muted);
-  font-size: 16px;
-  line-height: 23px;
+  font-size: 17px;
+  line-height: 24px;
   max-width: 34ch;
 }
 
@@ -454,16 +520,28 @@ body {
 }
 
 .album-name {
-  font-family: var(--font-kalam), cursive;
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 26px;
+  align-items: baseline;
+  display: flex;
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 400;
+  gap: 6px;
+  line-height: 28px;
   margin-top: 8px;
+}
+
+.album-age {
+  font-family: var(--font-anek), sans-serif;
+  font-size: 15px;
+  font-stretch: 82%;
+  font-weight: 700;
 }
 
 .album-place {
   color: var(--pen-muted);
-  font-size: 13px;
+  font-size: 13.5px;
+  font-stretch: 92%;
+  font-weight: 500;
   line-height: 18px;
 }
 
@@ -491,6 +569,7 @@ body {
 
 .match-stamp .stamp-frame {
   height: 100%;
+  position: relative;
   rotate: -3deg;
 }
 
@@ -505,17 +584,20 @@ body {
 }
 
 .match-title {
-  font-family: var(--font-kalam), cursive;
-  font-size: clamp(44px, 13vw, 64px);
-  font-weight: 700;
-  line-height: 1.1;
-  margin-top: 26px;
+  font-family: var(--display);
+  font-size: clamp(50px, 14.5vw, 84px);
+  font-weight: 400;
+  line-height: 1.05;
+  margin-top: 34px;
+  position: relative;
 }
 
 .match-text {
-  font-size: 18px;
-  line-height: 25px;
-  margin-top: 4px;
+  font-family: var(--hand);
+  font-size: 22px;
+  line-height: 28px;
+  margin-top: 6px;
+  position: relative;
 }
 
 .match-actions {
@@ -524,6 +606,7 @@ body {
   gap: 10px;
   margin-top: 26px;
   max-width: 20rem;
+  position: relative;
   width: 100%;
 }
 

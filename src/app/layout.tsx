@@ -1,17 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Kalam, Mukta } from "next/font/google";
+import { Anek_Latin, Kalam, Rozha_One } from "next/font/google";
 import "./globals.css";
+import "./scene.css";
+
+const rozha = Rozha_One({
+  variable: "--font-rozha",
+  subsets: ["latin"],
+  weight: "400",
+});
+
+const anek = Anek_Latin({
+  variable: "--font-anek",
+  subsets: ["latin"],
+  axes: ["wdth"],
+});
 
 const kalam = Kalam({
   variable: "--font-kalam",
   subsets: ["latin"],
-  weight: ["400", "700"],
-});
-
-const mukta = Mukta({
-  variable: "--font-mukta",
-  subsets: ["latin"],
-  weight: ["400", "500", "700", "800"],
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -26,7 +33,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${kalam.variable} ${mukta.variable} antialiased`}>
+    <html lang="en" className={`${rozha.variable} ${anek.variable} ${kalam.variable} antialiased`}>
       <body>{children}</body>
     </html>
   );

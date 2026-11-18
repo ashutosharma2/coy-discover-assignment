@@ -7,6 +7,13 @@ export interface PendingSwipe {
   slow: boolean;
 }
 
+/** The latest swipe the server confirmed. It holds nothing about the other person. */
+export interface SavedSwipe {
+  seq: number;
+  action: SwipeAction;
+  matched: boolean;
+}
+
 export interface DeckState {
   feed: "loading" | "ready" | "error";
   /** The top card is always profiles[0]. It stays here until the server confirms the swipe. */
@@ -14,6 +21,7 @@ export interface DeckState {
   pending: PendingSwipe | null;
   notice: string | null;
   match: PublicProfile | null;
+  lastSaved: SavedSwipe | null;
 }
 
 export type DeckEvent =
@@ -32,6 +40,7 @@ export const initialDeck: DeckState = {
   pending: null,
   notice: null,
   match: null,
+  lastSaved: null,
 };
 
 export function deckReducer(state: DeckState, event: DeckEvent): DeckState {
@@ -55,9 +64,10 @@ export function deckReducer(state: DeckState, event: DeckEvent): DeckState {
       return state.pending ? { ...state, pending: { ...state.pending, slow: true } } : state;
     case "swipeSaved": {
       if (!state.pending) return state;
-      const { profile } = state.pending;
+      const { profile, action } = state.pending;
       return {
         ...state,
+        lastSaved: { seq: (state.lastSaved?.seq ?? 0) + 1, action, matched: event.matched },
         profiles: state.profiles.filter((p) => p.id !== profile.id),
         pending: null,
         match: event.matched ? profile : null,

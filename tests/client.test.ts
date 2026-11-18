@@ -1,8 +1,9 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { sendSwipe, type SwipeAttempt } from "@/lib/client/api";
 import { deckReducer, initialDeck, swipeFromDrag, type DeckState } from "@/lib/client/deck";
+import { REACTIONS, WAITING_POSE, nextRoutine, reactionFor, type Step } from "@/lib/client/mascot";
 import { RETRY_DELAYS_MS, submitSwipe } from "@/lib/client/swipe-flow";
 import { SEED_PROFILES } from "@/lib/server/seed-profiles";
 import type { PublicProfile } from "@/lib/types";
@@ -129,6 +130,43 @@ describe("deck", () => {
   });
 });
 
+describe("the pigeon", () => {
+  it("reacts only to the user's own swipe and the server's final answer", () => {
+    expect(reactionFor("pass", false)).toBe("setAside");
+    expect(reactionFor("like", false)).toBe("pinToChart");
+    expect(reactionFor("like", true)).toBe("match");
+  });
+
+  it("keeps the heart for a confirmed match", () => {
+    const effects = (steps: Step[]) => steps.map((step) => step.effect);
+    expect(effects(REACTIONS.match)).toContain("heart");
+    for (const reaction of ["setAside", "pinToChart", "celebrate"] as const) {
+      expect(effects(REACTIONS[reaction])).not.toContain("heart");
+    }
+    for (let turn = 0; turn < 8; turn++) expect(effects(nextRoutine(turn))).not.toContain("heart");
+  });
+
+  it("does the same thing while any swipe is saving", () => {
+    expect(WAITING_POSE).toBe("wait");
+  });
+
+  it("records a saved swipe without anything about the other person", () => {
+    let deck = deckReducer(readyDeck(), { type: "swipeStarted", profile: ananya, action: "like" });
+    expect(deck.lastSaved).toBeNull();
+    deck = deckReducer(deck, { type: "swipeSaved", matched: false });
+    expect(deck.lastSaved).toEqual({ seq: 1, action: "like", matched: false });
+    deck = deckReducer(deck, { type: "swipeStarted", profile: kabir, action: "pass" });
+    deck = deckReducer(deck, { type: "swipeSaved", matched: false });
+    expect(deck.lastSaved).toEqual({ seq: 2, action: "pass", matched: false });
+  });
+
+  it("doesn't count a swipe that wasn't confirmed", () => {
+    let deck = deckReducer(readyDeck(), { type: "swipeStarted", profile: ananya, action: "like" });
+    deck = deckReducer(deck, { type: "swipeReturned", message: "Try again." });
+    expect(deck.lastSaved).toBeNull();
+  });
+});
+
 describe("swipeFromDrag", () => {
   const width = 300;
 
@@ -149,6 +187,13 @@ describe("avatars", () => {
   it("has a local avatar file for every seeded profile", () => {
     for (const { name } of SEED_PROFILES) {
       expect(existsSync(path.join("public", "avatars", `${name.toLowerCase()}.svg`)), name).toBe(true);
+    }
+  });
+
+  it("draws every avatar without loading anything from another site", () => {
+    for (const { name } of SEED_PROFILES) {
+      const svg = readFileSync(path.join("public", "avatars", `${name.toLowerCase()}.svg`), "utf8");
+      expect(svg.replace('xmlns="http://www.w3.org/2000/svg"', ""), name).not.toMatch(/https?:|<image/);
     }
   });
 });

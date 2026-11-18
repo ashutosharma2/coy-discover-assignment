@@ -1,5 +1,6 @@
 "use client";
 
+import { animate, type MotionValue } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
 import type { DeckState } from "@/lib/client/deck";
 import type { SwipeResolution } from "@/lib/client/use-discover";
@@ -12,9 +13,10 @@ interface SwipeDeckProps {
   reload: () => Promise<void>;
   openMatches: () => void;
   keyboardActive: boolean;
+  dragProgress: MotionValue<number>;
 }
 
-export function SwipeDeck({ deck, swipe, reload, openMatches, keyboardActive }: SwipeDeckProps) {
+export function SwipeDeck({ deck, swipe, reload, openMatches, keyboardActive, dragProgress }: SwipeDeckProps) {
   const topCard = useRef<SwipeCardHandle>(null);
   const busy = useRef(false);
 
@@ -29,9 +31,10 @@ export function SwipeDeck({ deck, swipe, reload, openMatches, keyboardActive }: 
       const flown = topCard.current?.fly(action) ?? Promise.resolve();
       const resolution = await swipe(top, action, flown);
       if (resolution === "returned") topCard.current?.comeBack();
+      void animate(dragProgress, 0, { duration: 0.3 });
       busy.current = false;
     },
-    [swipe, top],
+    [dragProgress, swipe, top],
   );
 
   useEffect(() => {
@@ -98,6 +101,7 @@ export function SwipeDeck({ deck, swipe, reload, openMatches, keyboardActive }: 
               isTop={isTop}
               locked={locked}
               onSwipe={(action) => void commit(action)}
+              dragProgress={dragProgress}
             />
           );
         })}

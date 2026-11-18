@@ -1,10 +1,11 @@
 "use client";
 
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, useMotionValue } from "motion/react";
 import { useCallback, useState } from "react";
 import { useDiscover, useMatches } from "@/lib/client/use-discover";
 import { MatchesView } from "./MatchesView";
 import { MatchScreen } from "./MatchScreen";
+import { DiscoverScene } from "./scene/DiscoverScene";
 import { SwipeDeck } from "./SwipeDeck";
 import { TabBar, type Tab } from "./TabBar";
 
@@ -19,6 +20,7 @@ export function AppShell() {
   const [view, setView] = useState<View>("deck");
   const { deck, swipe, reload, closeMatch } = useDiscover();
   const { matches, load: loadMatches } = useMatches();
+  const dragProgress = useMotionValue(0);
 
   const openMatches = useCallback(() => {
     setView("matches");
@@ -33,6 +35,13 @@ export function AppShell() {
   return (
     <div className="app">
       <main className="app-main" inert={deck.match !== null}>
+        <DiscoverScene
+          active={tab === "discover" && view === "deck"}
+          saving={deck.pending !== null}
+          lastSaved={deck.lastSaved}
+          matchOpen={deck.match !== null}
+          dragProgress={dragProgress}
+        />
         {tab === "home" && <h1 className="sr-only">Home</h1>}
 
         <div className={tab === "discover" ? "discover" : "hidden"}>
@@ -63,6 +72,7 @@ export function AppShell() {
               reload={reload}
               openMatches={openMatches}
               keyboardActive={tab === "discover" && view === "deck" && deck.match === null}
+              dragProgress={dragProgress}
             />
           </div>
 

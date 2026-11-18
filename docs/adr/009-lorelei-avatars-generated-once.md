@@ -1,6 +1,6 @@
 # ADR-009: Lorelei avatars, generated once and committed
 
-- Status: Accepted
+- Status: Superseded by [ADR-010](010-portraits-drawn-in-code.md)
 - Date: 2026-11-18
 - Written: 2026-11-18
 

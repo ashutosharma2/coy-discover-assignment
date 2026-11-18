@@ -28,7 +28,7 @@ export function Postmark({ label, city, date, className }: PostmarkProps) {
         <path id={`${id}top`} d="M 32 100 A 68 68 0 0 1 168 100" />
         <path id={`${id}bottom`} d="M 16 100 A 84 84 0 0 0 184 100" />
       </defs>
-      <g filter={`url(#${id}ink)`} fontFamily="var(--font-mukta), sans-serif" fontWeight="800">
+      <g filter={`url(#${id}ink)`} fontFamily="var(--font-anek), sans-serif" fontWeight="800" style={{ fontStretch: "85%" }}>
         <circle cx="100" cy="100" r="95" fill="none" stroke="currentColor" strokeWidth="5" />
         <circle cx="100" cy="100" r="57" fill="none" stroke="currentColor" strokeWidth="3" />
         <text fill="currentColor" fontSize="17" letterSpacing="1.5">

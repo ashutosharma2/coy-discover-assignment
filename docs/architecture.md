@@ -343,6 +343,7 @@ flowchart TD
 | Swiping as someone else | The server fixes who "me" is; the body can't name the swiper | Test: a `fromId` in the body is ignored |
 | Guessing an endpoint such as `/likes` | Three API routes, none of which returns swipes | `next build` lists the three routes |
 | Database or seed code shipped to the browser | `server-only` on every server module; only the avatars are in `public/` | A client import failed the build (2026-11-17); a scan of the built browser files found no seed data (2026-11-18) |
+| The pigeon reacting to an incoming like | The scene never receives a profile, and it holds the same pose until the server answers | Tests on its reactions; a browser run with a slowed server (2026-11-18) |
 | Timing a request | A pass never looks up their like; a like already returns the answer | Not tested; reasoned from the code |
 
 ## 13. The Discover UI
@@ -357,11 +358,13 @@ flowchart TB
     end
 
     Shell --> Tabs["TabBar<br/>Home (blank) and Discover"]
+    Shell --> Scene["DiscoverScene<br/>the pigeon, desk and star chart"]
     Shell --> Deck["SwipeDeck<br/>top card is profiles[0], next card underneath"]
     Shell --> Album["MatchesView<br/>the Matches side of Discover"]
     Shell --> MatchScreen["MatchScreen<br/>only after the server says matched"]
     Deck --> Card["SwipeCard<br/>Motion drag, postmarks, fly-off"]
 
+    Scene --> Director["director.ts and mascot.ts<br/>poses, routine and reactions"]
     DeckState --> Reducer["deck.ts<br/>what each event does to the deck"]
     DeckState --> Flow["swipe-flow.ts<br/>retries an unknown result"]
     Flow --> Client["api.ts<br/>reads each response"]
@@ -369,6 +372,8 @@ flowchart TB
     MatchState --> Client
     Client --> Api["/api/feed, /api/swipe, /api/matches"]
 ```
+
+The pigeon behind the deck hears only whether a swipe is saving and, once saved, the user's action and the server's `matched` answer ([ADR-011](adr/011-pigeon-behind-the-deck.md)).
 
 ## 14. A swipe in the browser
 
@@ -414,10 +419,10 @@ flowchart TD
 
 ## 16. Tests
 
-62 Vitest tests, run with `npm test`. Seven deliberate bugs each made tests fail before the code was restored: no shuffle, likers sorted first, a changed swipe overwriting the first, no retry, a card removed before the server answered, a 500 treated as final, and a swipe threshold of almost nothing.
+68 Vitest tests, run with `npm test`. Seven deliberate bugs each made tests fail before the code was restored: no shuffle, likers sorted first, a changed swipe overwriting the first, no retry, a card removed before the server answered, a 500 treated as final, and a swipe threshold of almost nothing.
 
 | File | Tests | What it covers |
 |---|---|---|
 | [tests/discover.test.ts](../tests/discover.test.ts) | 17 | The logic on an in-memory database: seeding, feed contents and fields, the shuffle and its fairness, every swipe rule, matches |
 | [tests/routes.test.ts](../tests/routes.test.ts) | 15 | The HTTP layer on a temporary database file: status codes, bodies, headers, a `fromId` in the body, persistence across a restart, reset |
-| [tests/client.test.ts](../tests/client.test.ts) | 30 | The browser logic: reading each response, retries, the deck's state, the swipe threshold, and an avatar file for every profile |
+| [tests/client.test.ts](../tests/client.test.ts) | 36 | The browser logic: reading each response, retries, the deck's state, the swipe threshold, the pigeon's reactions, and a self-contained avatar for every profile |

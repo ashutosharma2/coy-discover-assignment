@@ -7,6 +7,7 @@ import {
   useMotionValueEvent,
   useReducedMotion,
   useTransform,
+  type MotionValue,
   type PanInfo,
 } from "motion/react";
 import { useImperativeHandle, useMemo, useRef, type Ref } from "react";
@@ -27,6 +28,7 @@ interface SwipeCardProps {
   isTop: boolean;
   locked: boolean;
   onSwipe: (action: SwipeAction) => void;
+  dragProgress: MotionValue<number>;
   ref?: Ref<SwipeCardHandle>;
 }
 
@@ -34,7 +36,7 @@ const SPRING_BACK = { type: "spring", stiffness: 420, damping: 32 } as const;
 const inkFor = (distance: number) => Math.min(Math.max((distance - 24) / 90, 0), 1);
 const pause = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-export function SwipeCard({ profile, isTop, locked, onSwipe, ref }: SwipeCardProps) {
+export function SwipeCard({ profile, isTop, locked, onSwipe, dragProgress, ref }: SwipeCardProps) {
   const reduceMotion = useReducedMotion();
   const cardRef = useRef<HTMLElement>(null);
 
@@ -48,6 +50,7 @@ export function SwipeCard({ profile, isTop, locked, onSwipe, ref }: SwipeCardPro
   useMotionValueEvent(x, "change", (value) => {
     likeInk.set(inkFor(value));
     passInk.set(inkFor(-value));
+    if (isTop) dragProgress.set(Math.max(-1, Math.min(1, value / 320)));
   });
 
   useImperativeHandle(
@@ -86,7 +89,6 @@ export function SwipeCard({ profile, isTop, locked, onSwipe, ref }: SwipeCardPro
   }
 
   const today = useMemo(() => postmarkDate(new Date()), []);
-  const place = profile.college ? `${profile.college}, ${profile.city}` : profile.city;
 
   return (
     <motion.div
@@ -112,12 +114,20 @@ export function SwipeCard({ profile, isTop, locked, onSwipe, ref }: SwipeCardPro
         <div>
           <p className="letter-to">To,</p>
           <h2 className="letter-name">
-            {profile.name}, {profile.age}
+            {profile.name}
+            <span className="letter-age">{profile.age}</span>
           </h2>
-          <p className="letter-place">{place}</p>
+          <p className="letter-place">
+            {profile.college && <span className="letter-college">{profile.college}</span>}
+            <span>{profile.city}</span>
+          </p>
         </div>
         <p className="letter-bio">{profile.bio}</p>
-        <p className="letter-interests">{profile.interests.join(", ")}</p>
+        <ul className="letter-interests">
+          {profile.interests.map((interest) => (
+            <li key={interest}>{interest}</li>
+          ))}
+        </ul>
 
         <motion.div className="letter-mark letter-mark-like" style={{ opacity: likeInk }}>
           <Postmark label="LIKE" city={profile.city} date={today} />
