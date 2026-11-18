@@ -7,5 +7,5 @@
 - [ ] Try the drag on a real phone. So far it has been tested with a mouse in a phone-sized browser window ([ADR-008](docs/adr/008-motion-for-the-drag.md)).
 - [ ] Write down the reason for choosing Motion over hand-written Pointer Events ([ADR-008](docs/adr/008-motion-for-the-drag.md)).
 - [ ] Write down the reason for rejecting pass-then-like. It leaks nothing, so the reason isn't privacy ([ADR-002](docs/adr/002-swipes-are-final.md)).
-- [ ] List what a real deployment would need and this app doesn't have in the README: sign-in, per-user sessions, rate limiting ([ADR-001](docs/adr/001-server-decides-matches.md)).
+- [x] List what a real deployment would need and this app doesn't have in the README: sign-in, per-user sessions, rate limiting ([ADR-001](docs/adr/001-server-decides-matches.md)).
 - [ ] `create-next-app` 16.4.6 installs ESLint 9, which npm now reports as no longer supported. Move to a supported ESLint once `eslint-config-next` allows it.
