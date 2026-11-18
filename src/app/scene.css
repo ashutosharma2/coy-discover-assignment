@@ -1,7 +1,9 @@
-/* The pigeon's world behind the deck. Everything here sits behind the app and ignores touches. */
+/* The owl's room behind the deck. Everything here sits behind the app and ignores touches. */
 
 .scene {
   --drag: 0;
+  --bench-top: var(--stage-top);
+  --u: calc(var(--scene-band) / 272);
   inset: 0;
   overflow: hidden;
   pointer-events: none;
@@ -9,345 +11,547 @@
   z-index: 0;
 }
 
-.scene-off .scene-desk,
-.scene-off .scene-chart {
+.scene-off .scene-window,
+.scene-off .scene-panelling,
+.scene-off .scene-floor,
+.scene-off .scene-postbox,
+.scene-off .scene-thread,
+.scene-off .scene-board,
+.scene-off .scene-bench {
   display: none;
 }
 
-.scene-stars {
-  background-repeat: repeat;
-  inset: -40px;
+/* The wall */
+
+.scene-wall {
+  background:
+    radial-gradient(70% 60% at 22% 78%, rgb(255 190 110 / 13%), transparent 70%),
+    radial-gradient(52% 46% at 84% 22%, rgb(255 214 150 / 7%), transparent 72%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112'%3E%3Cg fill='%23c9d4ff' fill-opacity='.07'%3E%3Cpath d='M28 18l2 8 8 2-8 2-2 8-2-8-8-2 8-2z'/%3E%3Cpath d='M84 74l2 8 8 2-8 2-2 8-2-8-8-2 8-2z'/%3E%3C/g%3E%3Ccircle cx='84' cy='28' r='1.500' fill='%23c9d4ff' fill-opacity='.1'/%3E%3Ccircle cx='28' cy='84' r='1.500' fill='%23c9d4ff' fill-opacity='.1'/%3E%3C/svg%3E"),
+    linear-gradient(#0f1650, #151d63 55%, #10174f);
+  inset: 0;
   position: absolute;
 }
 
-.scene-stars-far {
-  background-image:
-    radial-gradient(1.2px 1.2px at 24px 38px, #8fa0dd, transparent),
-    radial-gradient(1px 1px at 130px 92px, #aebde6, transparent),
-    radial-gradient(1.4px 1.4px at 212px 22px, #8fa0dd, transparent),
-    radial-gradient(1px 1px at 70px 168px, #aebde6, transparent),
-    radial-gradient(1.2px 1.2px at 186px 196px, #8fa0dd, transparent);
-  background-size: 250px 230px;
-  transform: translateX(calc(var(--drag) * -8px));
+/* Daylight fades in over the night room, so the change at dawn and dusk is gradual. */
+
+.scene-wall::after {
+  background:
+    radial-gradient(60% 50% at 20% 22%, rgb(255 244 205 / 75%), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112'%3E%3Cg fill='%23304aa8' fill-opacity='.1'%3E%3Cpath d='M28 18l2 8 8 2-8 2-2 8-2-8-8-2 8-2z'/%3E%3Cpath d='M84 74l2 8 8 2-8 2-2 8-2-8-8-2 8-2z'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(#bfd2f7, #d5e1fa 60%, #c5d5f6);
+  content: "";
+  inset: 0;
+  opacity: 0;
+  position: absolute;
+  transition: opacity 1400ms ease;
 }
 
-.scene-stars-near {
-  animation: scene-twinkle 7s ease-in-out infinite;
-  background-image:
-    radial-gradient(1.8px 1.8px at 60px 70px, #f4e6b8, transparent),
-    radial-gradient(1.5px 1.5px at 290px 210px, #dfe7ff, transparent),
-    radial-gradient(2px 2px at 330px 40px, #f4e6b8, transparent);
-  background-size: 410px 330px;
-  transform: translateX(calc(var(--drag) * -18px));
+[data-theme="day"] .scene-wall::after {
+  opacity: 1;
 }
 
-@keyframes scene-twinkle {
-  50% {
-    opacity: 0.45;
-  }
+/* Away from the room there is no window, so there is no patch of sunlight either. */
+
+.scene-off .scene-wall::after {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112'%3E%3Cg fill='%23304aa8' fill-opacity='.1'%3E%3Cpath d='M28 18l2 8 8 2-8 2-2 8-2-8-8-2 8-2z'/%3E%3Cpath d='M84 74l2 8 8 2-8 2-2 8-2-8-8-2 8-2z'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(#bfd2f7, #d5e1fa 60%, #c5d5f6);
 }
 
-/* Phones and tablets: the desk and chart share a strip above the card. */
+.scene-window,
+.scene-postbox,
+.scene-panelling,
+.scene-floor {
+  display: none;
+}
 
-.scene-desk,
-.scene-chart {
-  overflow: visible;
+/* Phones and tablets: the desk becomes a shelf that runs along the top of the card. */
+
+.scene-bench {
+  height: calc(var(--bench-top) + var(--scene-band));
+  inset: 0 0 auto;
+  overflow: hidden;
   position: absolute;
 }
 
 .scene-desk {
-  height: calc(var(--scene-band) + 28px);
-  left: max(6px, calc(50% - 13.5rem));
-  max-width: 62%;
-  top: 56px;
-  width: calc((var(--scene-band) + 28px) * 1.65);
+  height: calc(var(--u) * 480);
+  left: max(4px, calc(50% - 13rem - var(--u) * 44));
+  position: absolute;
+  top: calc(var(--bench-top) + var(--scene-band) - var(--u) * 344);
+  width: calc(var(--u) * 560);
 }
 
-.scene-chart {
-  height: calc(var(--scene-band) - 6px);
-  max-width: 37%;
-  right: max(10px, calc(50% - 13rem));
-  top: 66px;
-  transform: translateX(calc(var(--drag) * -5px)) rotate(2deg);
-  width: calc((var(--scene-band) - 6px) * 1.5);
+.scene-layer {
+  height: 100%;
+  inset: 0;
+  overflow: visible;
+  position: absolute;
+  width: 100%;
 }
 
-@media (max-width: 959px) and (max-height: 719px), (max-width: 339px) {
-  .scene-desk,
-  .scene-chart {
+.scene-shelf {
+  background: linear-gradient(#a8743f 0 64%, #18120f 64% 68%, #8a5a33 68%);
+  height: calc(var(--u) * 42);
+  left: -100vw;
+  position: absolute;
+  right: -100vw;
+  top: calc(var(--u) * 304);
+}
+
+.desk-rack,
+.desk-slot,
+.desk-ink,
+.desk-top,
+.desk-body {
+  display: none;
+}
+
+.scene-board {
+  height: auto;
+  overflow: visible;
+  position: absolute;
+  right: max(8px, calc(50% - 13rem));
+  top: calc(var(--bench-top) - 4px);
+  transform: translateX(calc(var(--drag) * -4px));
+  width: min(40%, calc((var(--scene-band) - 16px) * 1.3));
+}
+
+/* On phones the thread stays above the shelf, even when no card is covering what lies below. */
+
+.scene-thread {
+  height: calc(var(--bench-top) + var(--scene-band));
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.thread-line {
+  fill: none;
+  stroke: #e0454d;
+  stroke-linecap: round;
+  stroke-width: 1.6;
+}
+
+.thread-spark {
+  fill: none;
+  opacity: 0;
+  stroke: #ffe08c;
+  stroke-dasharray: 0.09 1;
+  stroke-linecap: round;
+  stroke-width: 4;
+}
+
+/* Shorter phones: only the owl's head peeks over the top of the card. */
+
+@media (min-width: 21.25em) and (max-width: 59.9375em) and (min-height: 40em) and (max-height: 44.9375em) {
+  .scene {
+    --u: 0.36px;
+  }
+
+  .scene-board,
+  .scene-thread,
+  .scene-shelf,
+  .scene-layer-back,
+  .scene-layer-front,
+  .scene-layer-hands {
+    display: none;
+  }
+
+  .scene-desk {
+    left: calc(50% - var(--u) * 262);
+    top: calc(var(--bench-top) + var(--scene-band) - var(--u) * 214);
+  }
+}
+
+/* The smallest screens keep all the space for the card. */
+
+@media (max-width: 59.9375em) and (max-height: 39.9375em), (max-width: 21.1875em) {
+  .scene-bench,
+  .scene-board,
+  .scene-thread {
     display: none;
   }
 }
 
-/* Wide screens: the desk stands to the left of the card and the chart hangs to the right. */
+/* Wide screens: the whole room, with the desk at lower left and the board at upper right. */
 
-@media (min-width: 960px) {
-  .scene-desk {
+@media (min-width: 60em) {
+  .scene {
+    --gutter: calc(50% - 13rem);
+    --desk-width: min(31rem, calc(50vw - 13rem - 24px));
+    --board-width: min(27rem, calc(50vw - 13rem - 48px));
+    --floor: 34px;
+  }
+
+  .scene-wall {
+    background:
+      radial-gradient(38% 52% at 18% 74%, rgb(255 190 110 / 20%), transparent 72%),
+      radial-gradient(30% 40% at 83% 24%, rgb(255 214 150 / 10%), transparent 72%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112'%3E%3Cg fill='%23c9d4ff' fill-opacity='.07'%3E%3Cpath d='M28 18l2 8 8 2-8 2-2 8-2-8-8-2 8-2z'/%3E%3Cpath d='M84 74l2 8 8 2-8 2-2 8-2-8-8-2 8-2z'/%3E%3C/g%3E%3Ccircle cx='84' cy='28' r='1.500' fill='%23c9d4ff' fill-opacity='.1'/%3E%3Ccircle cx='28' cy='84' r='1.500' fill='%23c9d4ff' fill-opacity='.1'/%3E%3C/svg%3E"),
+      linear-gradient(#0e154e, #161f68 62%, #111853);
+  }
+
+  .scene-panelling {
+    background:
+      linear-gradient(#2a1a10 0 5px, #6f4426 5px 9px, #18120f 9px 11px, transparent 11px),
+      repeating-linear-gradient(90deg, #0b1040 0 2px, transparent 2px 92px),
+      linear-gradient(#0d1345, #0a0f3a);
+    bottom: var(--floor);
+    display: block;
+    height: clamp(90px, 17vh, 150px);
+    inset-inline: 0;
+    position: absolute;
+  }
+
+  .scene-panelling::after {
+    background:
+      linear-gradient(#5d3a20 0 5px, #a8743f 5px 9px, #18120f 9px 11px, transparent 11px),
+      repeating-linear-gradient(90deg, #7f97cf 0 2px, transparent 2px 92px),
+      linear-gradient(#a5b9e6, #93a9dc);
+    content: "";
+    inset: 0;
+    opacity: 0;
+    position: absolute;
+    transition: opacity 1400ms ease;
+  }
+
+  [data-theme="day"] .scene-panelling::after {
+    opacity: 1;
+  }
+
+  .scene-floor {
+    background:
+      linear-gradient(#18120f 0 3px, transparent 3px),
+      repeating-linear-gradient(90deg, #2c1a0e 0 150px, #1c1008 150px 152px),
+      #2c1a0e;
     bottom: 0;
+    display: block;
+    height: var(--floor);
+    inset-inline: 0;
+    position: absolute;
+  }
+
+  .scene-window {
+    display: block;
     height: auto;
-    left: max(20px, calc(25% - 20rem));
-    max-width: none;
-    top: auto;
-    width: min(27rem, calc(50% - 13rem - 40px));
+    left: calc(max(20px, (var(--gutter) - 13rem) * 0.3));
+    overflow: visible;
+    position: absolute;
+    top: clamp(18px, 6vh, 56px);
+    transform: translateX(calc(var(--drag) * -7px));
+    width: min(11.5rem, calc((50vw - 13rem) * 0.4), 24vh);
   }
 
-  .scene-chart {
+  .scene-postbox {
+    bottom: calc(var(--floor) - 12px);
+    display: block;
     height: auto;
-    max-width: none;
-    right: max(28px, calc(25% - 18rem));
-    top: 12%;
-    width: min(23rem, calc(50% - 13rem - 56px));
+    overflow: visible;
+    position: absolute;
+    filter: brightness(0.66) saturate(0.85);
+    right: calc((var(--gutter) - min(5.5rem, 10vw)) * 0.5);
+    width: min(5.5rem, 10vw, 13vh);
+  }
+
+  .scene-bench {
+    bottom: 8px;
+    height: calc(var(--desk-width) * 480 / 560);
+    inset: auto auto 8px max(8px, calc((var(--gutter) - var(--desk-width)) * 0.5));
+    overflow: visible;
+    width: var(--desk-width);
+  }
+
+  .scene-desk {
+    height: 100%;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .scene-shelf {
+    display: none;
+  }
+
+  .scene-thread {
+    height: 100%;
+    overflow: visible;
+  }
+
+  .desk-rack,
+  .desk-slot,
+  .desk-ink,
+  .desk-top,
+  .desk-body {
+    display: inline;
+  }
+
+  .scene-board {
+    right: calc((var(--gutter) - var(--board-width)) * 0.5);
+    top: clamp(22px, 7vh, 68px);
+    width: var(--board-width);
   }
 }
 
-/* The pigeon: each pose names where the parts should be, and CSS moves them there. */
-
-.m-body,
-.m-head,
-.m-wing,
-.m-held,
-.m-gaze {
-  transition: transform 620ms cubic-bezier(0.45, 0.05, 0.25, 1);
-}
-
-.m-head {
-  transform-origin: 140px 90px;
-}
-
-.m-wing-l {
-  transform-origin: 108px 102px;
-}
-
-.m-wing-r {
-  transform-origin: 172px 102px;
-}
-
-.m-body {
-  animation: m-breathe 5.2s ease-in-out infinite;
-  transform-origin: 140px 150px;
-}
-
-@keyframes m-breathe {
-  50% {
-    scale: 1.012 0.988;
+@media (min-width: 60em) and (max-height: 40em) {
+  .scene-postbox,
+  .scene-window {
+    display: none;
   }
 }
 
-.m-follow {
-  transform: translateX(calc(var(--drag) * 2.2px));
+/* By day the lamps are off, the sun is up and the post box catches the light. */
+
+.desk-glow,
+.board-lamp-light,
+.desk-bulb,
+.window-night,
+.window-day,
+.scene-postbox {
+  transition: opacity 1400ms ease, filter 1400ms ease, fill 1400ms ease;
 }
 
-.m-lid {
-  animation: m-blink 6.1s linear infinite;
-  transform-box: fill-box;
-  transform-origin: 50% 0;
-  transform: scaleY(0);
-}
-
-@keyframes m-blink {
-  0%,
-  94%,
-  100% {
-    transform: scaleY(0);
-  }
-
-  97% {
-    transform: scaleY(1);
-  }
-}
-
-.m-happy {
+.window-day {
   opacity: 0;
 }
 
-.m-held {
-  opacity: 0;
-  transition:
-    transform 620ms cubic-bezier(0.45, 0.05, 0.25, 1),
-    opacity 240ms ease;
+[data-theme="day"] .window-day {
+  opacity: 1;
 }
 
-.m-held-card {
-  transform-box: fill-box;
-  transform-origin: 50% 50%;
-}
-
-.m-held-back,
-.m-held-note {
+[data-theme="day"] .window-night {
   opacity: 0;
 }
 
-.m-hearts {
+[data-theme="day"] .desk-glow {
+  animation: none;
   opacity: 0;
 }
 
-.m-pile {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
+[data-theme="day"] .board-lamp-light {
+  opacity: 0.3;
 }
 
-/* Reach for the next postcard on the left pile. */
-[data-pose="reach"] .m-body { transform: translateX(-5px) rotate(-3deg); }
-[data-pose="reach"] .m-head { transform: rotate(-11deg) translateY(4px); }
-[data-pose="reach"] .m-gaze { transform: translate(-2.6px, 2px); }
-[data-pose="reach"] .m-wing-l { transform: rotate(38deg) translate(-8px, 5px); }
-[data-pose="reach"] .m-held { opacity: 1; transform: translate(-68px, 2px) scale(0.92); }
-
-/* Hold it up and read it. */
-[data-pose="read"] .m-head,
-[data-pose="flip"] .m-head { transform: translateY(5px) rotate(3deg); }
-[data-pose="read"] .m-gaze,
-[data-pose="flip"] .m-gaze { transform: translateY(2.6px); }
-[data-pose="read"] .m-wing-l,
-[data-pose="flip"] .m-wing-l { transform: rotate(-30deg) translate(6px, -8px); }
-[data-pose="read"] .m-wing-r,
-[data-pose="flip"] .m-wing-r { transform: rotate(30deg) translate(-6px, -8px); }
-[data-pose="read"] .m-held,
-[data-pose="flip"] .m-held { opacity: 1; transform: translateY(-9px); }
-
-/* Turn it over to read the other side. */
-[data-pose="flip"] .m-held-card { animation: m-flip 950ms ease-in-out both; }
-[data-pose="flip"] .m-held-back,
-[data-pose="flip"] .m-held-note { animation: m-show-back 950ms steps(1) both; }
-[data-pose="flip"] .m-held-face { animation: m-hide-front 950ms steps(1) both; }
-
-@keyframes m-flip {
-  0%,
-  100% { transform: scaleX(1); }
-  50% { transform: scaleX(0.04); }
+[data-theme="day"] .desk-bulb {
+  fill: #d8d2bd;
 }
 
-@keyframes m-show-back {
-  0%, 49% { opacity: 0; }
-  50%, 100% { opacity: 1; }
+[data-theme="day"] .scene-postbox {
+  filter: brightness(0.9) saturate(0.85);
 }
 
-@keyframes m-hide-front {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
+/* Small things that keep the room alive. */
+
+.desk-glow {
+  animation: room-lamp 7s ease-in-out infinite;
 }
 
-/* File it on the right pile. */
-[data-pose="file"] .m-body { transform: translateX(5px) rotate(3deg); }
-[data-pose="file"] .m-head { transform: rotate(11deg) translateY(4px); }
-[data-pose="file"] .m-gaze { transform: translate(2.6px, 2px); }
-[data-pose="file"] .m-wing-r { transform: rotate(-40deg) translate(10px, 5px); }
-[data-pose="file"] .m-held { opacity: 1; transform: translate(72px, -2px) rotate(5deg) scale(0.92); }
-
-/* Put a passed postcard aside on the far left. */
-[data-pose="aside"] .m-body { transform: translateX(-7px) rotate(-5deg); }
-[data-pose="aside"] .m-head { transform: rotate(-13deg) translateY(4px); }
-[data-pose="aside"] .m-gaze { transform: translate(-2.8px, 2px); }
-[data-pose="aside"] .m-wing-l { transform: rotate(52deg) translate(-12px, 6px); }
-[data-pose="aside"] .m-held { opacity: 1; transform: translate(-112px, 15px) rotate(-10deg) scale(0.88); }
-
-/* Look up at the stars. */
-[data-pose="look"] .m-head,
-[data-pose="point"] .m-head,
-[data-pose="wait"] .m-head,
-[data-pose="pin"] .m-head { transform: rotate(10deg) translateY(-4px); }
-[data-pose="look"] .m-gaze,
-[data-pose="point"] .m-gaze,
-[data-pose="wait"] .m-gaze,
-[data-pose="pin"] .m-gaze { transform: translate(2.5px, -2.6px); }
-
-/* Point at a star, or hold a liked postcard up to the chart. */
-[data-pose="point"] .m-wing-r,
-[data-pose="pin"] .m-wing-r { transform: rotate(-118deg) translate(8px, -6px); }
-[data-pose="pin"] .m-held { opacity: 1; transform: translate(52px, -66px) rotate(-14deg) scale(0.9); }
-
-/* Think it over while a swipe is being saved. */
-[data-pose="wait"] .m-wing-r { transform: rotate(44deg) translate(-16px, -24px); }
-
-/* The stars aligned. */
-[data-pose="joy"] .m-head { transform: translateY(-5px); }
-[data-pose="joy"] .m-eyes { opacity: 0; }
-[data-pose="joy"] .m-happy { opacity: 1; }
-[data-pose="joy"] .m-wing-l { transform: rotate(98deg) translate(-8px, -4px); }
-[data-pose="joy"] .m-wing-r { transform: rotate(-98deg) translate(8px, -4px); }
-[data-pose="joy"] .m-hearts { animation: m-hearts 1.8s ease-out both; }
-[data-pose="joy"] .m-body { animation: m-hop 620ms ease-in-out 3; }
-
-@keyframes m-hearts {
-  0% { opacity: 0; transform: translateY(16px); }
-  25% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(-22px); }
+@keyframes room-lamp {
+  40% { opacity: 0.86; }
+  46% { opacity: 0.96; }
+  52% { opacity: 0.84; }
 }
 
-@keyframes m-hop {
-  50% { translate: 0 -6px; }
-}
-
-/* The chart. */
-
-.chart-link {
+.cup-steam path {
+  animation: room-steam 3.4s ease-in-out infinite;
   opacity: 0;
-  stroke: #f4d98a;
-  stroke-dasharray: 1.5 6;
+}
+
+.cup-steam path:nth-child(2) {
+  animation-delay: 1.5s;
+}
+
+@keyframes room-steam {
+  0% { opacity: 0; transform: translateY(6px); }
+  40% { opacity: 0.6; }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+.window-cloud {
+  animation: room-cloud 46s ease-in-out infinite alternate;
+}
+
+@keyframes room-cloud {
+  to { transform: translateX(34px); }
+}
+
+/* The constellation board. */
+
+.board-line {
+  fill: none;
+  stroke: #aebde6;
+  stroke-dasharray: 2 7;
   stroke-linecap: round;
-  stroke-width: 2.4;
+  stroke-width: 2.6;
+  transition: stroke 700ms ease;
+}
+
+.board-path-star {
+  fill: #e4ecff;
+  transition: fill 700ms ease;
+}
+
+.board-halo {
+  fill: #ffd76e;
+  opacity: 0;
   transition: opacity 700ms ease;
 }
 
-.chart-link.is-on {
-  opacity: 0.85;
+.board-half {
+  transition: transform 1000ms cubic-bezier(0.3, 0.9, 0.3, 1);
 }
 
-.chart-star-glow {
+/* Apart, each half is turned away, so the board shows two wandering paths and no heart. */
+
+.board-half-l {
+  transform: translate(-66px, 6px) rotate(58deg) scale(0.74);
+  transform-origin: 220px 178px;
+}
+
+.board-half-r {
+  transform: translate(66px, -4px) rotate(58deg) scale(0.74);
+  transform-origin: 220px 178px;
+}
+
+/* The two paths drift near each other and apart again. They never touch on their own. */
+
+.board-drift-l {
+  animation: board-drift-l 17s ease-in-out infinite alternate;
+}
+
+.board-drift-r {
+  animation: board-drift-r 23s ease-in-out infinite alternate;
+}
+
+@keyframes board-drift-l {
+  to { transform: translate(9px, -5px); }
+}
+
+@keyframes board-drift-r {
+  to { transform: translate(-9px, 6px); }
+}
+
+.board-heart-fill {
+  fill: #ff8f8f;
+  opacity: 0;
+  transition: opacity 900ms ease 500ms;
+}
+
+.is-aligned .board-half {
+  transform: none;
+}
+
+.is-aligned .board-drift {
+  animation: none;
+}
+
+.is-aligned .board-line {
+  stroke: #ffc9bd;
+  stroke-dasharray: none;
+}
+
+.is-aligned .board-path-star {
+  fill: #ffe08c;
+}
+
+.is-aligned .board-halo {
+  opacity: 0.32;
+}
+
+.is-aligned .board-heart-fill {
+  opacity: 0.3;
+}
+
+.board-star-glow {
   fill: #ffd76e;
   opacity: 0;
   transition: opacity 600ms ease;
 }
 
-.chart-star-shape {
-  fill: #9aa8e0;
+.board-star-shape {
+  fill: #8d9cdc;
+  transform-box: fill-box;
+  transform-origin: center;
   transition: fill 500ms ease;
 }
 
-.chart-star-0 .chart-star-shape { animation: scene-twinkle 5s ease-in-out infinite; }
-.chart-star-1 .chart-star-shape { animation: scene-twinkle 7s ease-in-out 1.4s infinite; }
-.chart-star-2 .chart-star-shape { animation: scene-twinkle 6s ease-in-out 2.6s infinite; }
+.board-star-0 .board-star-shape { animation: board-twinkle 5s ease-in-out infinite; }
+.board-star-1 .board-star-shape { animation: board-twinkle 7s ease-in-out 1.4s infinite; }
+.board-star-2 .board-star-shape { animation: board-twinkle 6s ease-in-out 2.6s infinite; }
 
-.chart-star.is-lit .chart-star-shape {
+@keyframes board-twinkle {
+  50% { opacity: 0.45; }
+}
+
+.board-star.is-lit .board-star-shape {
   animation: none;
   fill: #ffe08c;
 }
 
-.chart-star.is-lit .chart-star-glow {
+.board-star.is-lit .board-star-glow {
   opacity: 0.3;
 }
 
-.chart-heart {
-  opacity: 0;
-  transition: opacity 900ms ease;
+.board-star.is-glinting .board-star-shape {
+  animation: board-glint 1.4s ease-in-out;
+  fill: #fff4cf;
 }
 
-.chart-heart.is-on {
-  opacity: 1;
+.board-star.is-glinting .board-star-glow {
+  opacity: 0.45;
 }
 
-.chart-heart polyline {
-  fill: none;
-  stroke: #ff9a9a;
-  stroke-dasharray: 1.5 6;
-  stroke-linecap: round;
-  stroke-width: 2.8;
+@keyframes board-glint {
+  40% { transform: scale(2) rotate(45deg); }
 }
 
-.chart-heart path {
-  fill: #ffc2b8;
+/* Hidden rather than removed, so a postcard in flight can still find where it should land. */
+
+.board-pin {
+  visibility: hidden;
 }
 
-.scene-flyer {
-  background: #f2c14e;
+.board-pin.is-on {
+  visibility: visible;
+}
+
+[data-owl="spark"],
+[data-slot-flap] {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+[data-slot-flap] {
+  transform-origin: 50% 0;
+}
+
+/* Postcards crossing the room. */
+
+.scene-postcard {
+  background:
+    linear-gradient(#46537f 0 0) 6px 8px / 16px 2px no-repeat,
+    linear-gradient(#46537f 0 0) 6px 14px / 16px 2px no-repeat,
+    linear-gradient(#fbfaf4 0 0) right 5px top 5px / 9px 11px no-repeat,
+    #f2c14e;
   border: 2px solid #18120f;
   border-radius: 2px;
-  height: 26px;
-  left: -19px;
+  height: 30px;
+  left: -22px;
   opacity: 0;
   position: absolute;
-  top: -13px;
-  width: 38px;
+  top: -15px;
+  width: 44px;
+}
+
+.scene-arrival {
+  background-color: #8fb8de;
+  height: 22px;
+  left: -16px;
+  top: -11px;
+  width: 32px;
 }
 
 /* The stars aligning on the match screen. */
@@ -421,6 +625,16 @@
 @keyframes match-line {
   from { opacity: 0; }
   to { opacity: 0.9; }
+}
+
+/* While the stars align, the deck steps back so the room can have the moment. */
+
+.discover {
+  transition: opacity 320ms ease;
+}
+
+[data-match-beat="true"] .discover {
+  opacity: 0.22;
 }
 
 @media (prefers-reduced-motion: reduce) {

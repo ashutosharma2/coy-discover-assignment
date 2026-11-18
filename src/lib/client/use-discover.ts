@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useReducer, useState } from "react";
 import type { MatchedProfile, PublicProfile, SwipeAction } from "../types";
-import { fetchFeed, fetchMatches, sendSwipe } from "./api";
+import { fetchFeed, fetchMatches, resetDeck, sendSwipe } from "./api";
 import { deckReducer, initialDeck } from "./deck";
 import { submitSwipe } from "./swipe-flow";
 
@@ -92,8 +92,17 @@ export function useDiscover() {
   );
 
   const closeMatch = useCallback(() => dispatch({ type: "matchClosed" }), []);
+  const markMatchesSeen = useCallback(() => dispatch({ type: "matchesSeen" }), []);
 
-  return { deck, swipe, reload, closeMatch };
+  /** The deck only changes once the server has confirmed the reset. */
+  const startOver = useCallback(async (): Promise<boolean> => {
+    if (!(await resetDeck())) return false;
+    dispatch({ type: "deckReset" });
+    await reload();
+    return true;
+  }, [reload]);
+
+  return { deck, swipe, reload, closeMatch, markMatchesSeen, startOver };
 }
 
 export interface MatchesState {

@@ -1,6 +1,6 @@
 # ADR-011: A pigeon sorts postcards behind the deck
 
-- Status: Accepted
+- Status: Superseded by [ADR-012](012-owl-in-one-room.md)
 - Date: 2026-11-18
 - Written: 2026-11-18
 

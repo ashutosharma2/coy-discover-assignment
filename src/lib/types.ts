@@ -35,6 +35,10 @@ export interface MatchesResponse {
   matches: MatchedProfile[];
 }
 
+export interface ResetResponse {
+  success: true;
+}
+
 export interface ErrorResponse {
   success: false;
   message: string;

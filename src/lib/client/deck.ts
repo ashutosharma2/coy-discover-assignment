@@ -16,12 +16,18 @@ export interface SavedSwipe {
 
 export interface DeckState {
   feed: "loading" | "ready" | "error";
-  /** The top card is always profiles[0]. It stays here until the server confirms the swipe. */
+  /** Everyone left to swipe on. A profile stays here until the server confirms the swipe. */
   profiles: PublicProfile[];
   pending: PendingSwipe | null;
   notice: string | null;
   match: PublicProfile | null;
   lastSaved: SavedSwipe | null;
+  /** How many swipes came back unconfirmed. */
+  returned: number;
+  /** Matches the server has confirmed since the user last opened Matches. */
+  newMatches: number;
+  /** How many times the user has started over, so the room can clear its board. */
+  resets: number;
 }
 
 export type DeckEvent =
@@ -32,7 +38,9 @@ export type DeckEvent =
   | { type: "swipeSlow" }
   | { type: "swipeSaved"; matched: boolean }
   | { type: "swipeReturned"; message: string }
-  | { type: "matchClosed" };
+  | { type: "matchClosed" }
+  | { type: "matchesSeen" }
+  | { type: "deckReset" };
 
 export const initialDeck: DeckState = {
   feed: "loading",
@@ -41,6 +49,9 @@ export const initialDeck: DeckState = {
   notice: null,
   match: null,
   lastSaved: null,
+  returned: 0,
+  newMatches: 0,
+  resets: 0,
 };
 
 export function deckReducer(state: DeckState, event: DeckEvent): DeckState {
@@ -71,12 +82,17 @@ export function deckReducer(state: DeckState, event: DeckEvent): DeckState {
         profiles: state.profiles.filter((p) => p.id !== profile.id),
         pending: null,
         match: event.matched ? profile : null,
+        newMatches: state.newMatches + (event.matched ? 1 : 0),
       };
     }
     case "swipeReturned":
-      return { ...state, pending: null, notice: event.message };
+      return { ...state, pending: null, notice: event.message, returned: state.returned + 1 };
     case "matchClosed":
       return { ...state, match: null };
+    case "matchesSeen":
+      return { ...state, newMatches: 0 };
+    case "deckReset":
+      return { ...initialDeck, resets: state.resets + 1 };
   }
 }
 

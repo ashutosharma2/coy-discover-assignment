@@ -41,6 +41,16 @@ export async function sendSwipe(swipe: SwipeRequest, fetchFn: typeof fetch = fet
   }
 }
 
+/** Asks the server to clear the user's swipes and matches. False means it may not have happened. */
+export async function resetDeck(fetchFn: typeof fetch = fetch): Promise<boolean> {
+  try {
+    const response = await fetchFn("/api/reset", { method: "POST", signal: AbortSignal.timeout(SWIPE_TIMEOUT_MS) });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 async function getJson<T>(url: string): Promise<T> {
   const response = await fetch(url, { cache: "no-store" });
   if (!response.ok) throw new Error(`${url} answered ${response.status}`);

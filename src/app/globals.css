@@ -3,30 +3,73 @@
 :root {
   --ink: #1a2472;
   --ink-deep: #121a58;
-  --on-ink: #e4ecf8;
-  --on-ink-muted: #aebde6;
-  --paper: #dde9f3;
-  --stamp-paper: #fbfaf4;
-  --pen: #1f2c8f;
-  --pen-muted: #46537f;
-  --rule: #b4c8dc;
+  --paper: #f4f7fd;
+  --paper-tint: #e7eefa;
+  --stamp-paper: #fffdf8;
+  --pen: #18205f;
+  --pen-muted: #4b5680;
+  --rule: #d3ddee;
   --letterbox: #d3262f;
   --letterbox-deep: #a81b24;
-  --display: var(--font-rozha), Georgia, serif;
-  --hand: var(--font-kalam), cursive;
+  --coral: #e23a5a;
+  --coral-deep: #c9244c;
+  --lavender: #e4e6ff;
+  --lavender-deep: #cdd3fa;
+  --display: var(--font-fraunces), Georgia, serif;
+  --hand: var(--font-caveat), cursive;
+  --ui: var(--font-manrope), system-ui, sans-serif;
+  --display-feel: "SOFT" 100, "WONK" 1;
+
   --scene-band: 0px;
+  --control: 2.75rem;
+  --head-height: 1.875rem;
+  --stack-peek: 20px;
+  --stage-top: calc(8px + var(--control) + 6px + var(--head-height) + 4px);
+
+  /* Night is the default, so the room is dark if the clock can't be read. */
+  --on-wall: #f3f5ff;
+  --on-wall-muted: #c6d0f2;
+  --surface: rgb(13 19 74 / 82%);
+  --surface-solid: #111850;
+  --surface-line: rgb(190 203 245 / 26%);
+  --surface-text: #cdd6f5;
+  --surface-strong: #ffffff;
+  --card-shadow: 0 22px 48px rgb(3 6 36 / 55%), 0 3px 8px rgb(3 6 36 / 35%);
+  --wall-base: #0f1650;
   color-scheme: dark;
 }
 
-@media (min-height: 720px) and (min-width: 340px) {
+:root[data-theme="day"] {
+  --on-wall: #131b5c;
+  --on-wall-muted: #38467f;
+  --surface: rgb(255 255 255 / 72%);
+  --surface-solid: #f3f6fe;
+  --surface-line: rgb(32 44 120 / 16%);
+  --surface-text: #3b477f;
+  --surface-strong: #131b5c;
+  --card-shadow: 0 22px 44px rgb(35 50 125 / 28%), 0 3px 8px rgb(35 50 125 / 16%);
+  --wall-base: #c9d8f6;
+  color-scheme: light;
+}
+
+/* The owl's shelf needs room above the card on phones and tablets. */
+
+@media (min-height: 40em) and (max-height: 44.9375em) and (min-width: 21.25em) {
   :root {
-    --scene-band: clamp(80px, calc(100dvh - 640px), 112px);
+    --scene-band: 46px;
   }
 }
 
-@media (min-width: 960px) {
+@media (min-height: 45em) and (min-width: 21.25em) {
+  :root {
+    --scene-band: clamp(76px, calc(100dvh - 756px), 100px);
+  }
+}
+
+@media (min-width: 60em) {
   :root {
     --scene-band: 0px;
+    --head-height: 3.625rem;
   }
 }
 
@@ -36,16 +79,23 @@ body {
 }
 
 body {
-  background: radial-gradient(120% 90% at 50% 18%, #26328f 0%, var(--ink) 52%, var(--ink-deep) 100%) fixed;
-  color: var(--on-ink);
-  font-family: var(--font-anek), system-ui, sans-serif;
+  background: var(--wall-base);
+  color: var(--on-wall);
+  font-family: var(--ui);
   overflow: hidden;
   overscroll-behavior: none;
+  transition: background-color 900ms ease;
 }
 
 :focus-visible {
-  outline: 3px solid var(--on-ink);
+  outline: 3px solid var(--on-wall);
   outline-offset: 2px;
+}
+
+.letter :focus-visible,
+.sheet :focus-visible,
+.filter-sheet :focus-visible {
+  outline-color: var(--pen);
 }
 
 /* App frame */
@@ -69,11 +119,11 @@ body {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
   margin-inline: auto;
   max-width: 46rem;
   min-height: 0;
-  padding: 12px 16px 0;
+  padding: 8px 16px 0;
   position: relative;
   width: 100%;
   z-index: 1;
@@ -83,70 +133,414 @@ body {
   display: flex;
   flex: 1;
   flex-direction: column;
-  justify-content: center;
   min-height: 0;
+}
+
+@media (min-width: 60em) {
+  .panel {
+    justify-content: center;
+  }
 }
 
 /* Bottom tabs */
 
 .tabbar {
-  background: var(--ink-deep);
+  backdrop-filter: blur(14px);
+  background: var(--surface);
+  border-top: 1px solid var(--surface-line);
   display: flex;
   justify-content: center;
-  position: relative;
-  z-index: 1;
   padding-bottom: env(safe-area-inset-bottom);
+  position: relative;
+  transition: background-color 900ms ease;
+  z-index: 1;
 }
 
 .tabbar-item {
   align-items: center;
-  color: var(--on-ink-muted);
+  color: var(--surface-text);
   cursor: pointer;
   display: flex;
   flex: 1;
   flex-direction: column;
-  font-size: 13px;
-  font-stretch: 92%;
-  font-weight: 600;
-  gap: 2px;
-  letter-spacing: 0.01em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 1px;
   max-width: 11rem;
-  padding: 9px 0 7px;
+  min-height: 52px;
+  justify-content: center;
+}
+
+.tabbar-item svg {
+  border-radius: 999px;
+  box-sizing: content-box;
+  padding: 1px 14px;
+  transition: background-color 200ms ease;
 }
 
 .tabbar-item[aria-current="page"] {
-  color: #fff;
-  box-shadow: inset 0 3px 0 var(--letterbox);
+  color: var(--surface-strong);
+  font-weight: 800;
 }
 
-/* Discover | Matches */
+.tabbar-item[aria-current="page"] svg {
+  background: var(--surface-line);
+}
 
-.segments {
+/* Postcards | Matches, with the filter and appearance controls beside it */
+
+.topbar {
+  align-items: center;
   align-self: center;
-  background: var(--ink-deep);
-  border-radius: 10px;
   display: flex;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 8px;
   max-width: 26rem;
-  padding: 3px;
   width: 100%;
 }
 
+.topbar-slot {
+  display: contents;
+}
+
+.segments {
+  backdrop-filter: blur(14px);
+  background: var(--surface);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--surface-line);
+  display: flex;
+  flex: 1 1 10.5rem;
+  height: var(--control);
+  min-width: 0;
+  padding: 3px;
+  transition: background-color 900ms ease;
+}
+
 .segment {
-  border-radius: 8px;
-  color: var(--on-ink-muted);
+  border-radius: 999px;
+  color: var(--surface-text);
   cursor: pointer;
   flex: 1;
-  font-size: 16px;
-  font-stretch: 90%;
-  font-weight: 600;
-  min-height: 38px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  position: relative;
+}
+
+/* The pill looks slim, but a finger can land anywhere in the full 44 px. */
+
+.segment::after {
+  content: "";
+  inset: -3px 0;
+  position: absolute;
 }
 
 .segment[aria-current="page"] {
   background: var(--paper);
+  box-shadow: 0 2px 6px rgb(10 16 70 / 22%);
   color: var(--pen);
+  font-weight: 800;
+}
+
+.segment-badge {
+  background: var(--coral);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  line-height: 1.125rem;
+  margin-inline-start: 5px;
+  min-width: 18px;
+  padding-inline: 5px;
+  vertical-align: 1px;
+}
+
+.round-control {
+  align-items: center;
+  backdrop-filter: blur(14px);
+  background: var(--surface);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--surface-line);
+  color: var(--surface-strong);
+  cursor: pointer;
+  display: inline-flex;
+  flex: none;
+  height: var(--control);
+  justify-content: center;
+  transition: transform 180ms cubic-bezier(0.3, 1.6, 0.5, 1), background-color 900ms ease;
+  width: var(--control);
+}
+
+.round-control:active {
+  transform: scale(0.9);
+}
+
+.round-control-paper {
+  background: var(--paper-tint);
+  box-shadow: none;
+  color: var(--pen);
+}
+
+/* The heading above the deck */
+
+.deck-head {
+  align-items: baseline;
+  align-self: center;
+  display: flex;
+  flex-shrink: 0;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  max-width: 26rem;
+  min-height: var(--head-height);
+  width: 100%;
+}
+
+.deck-title {
+  color: var(--on-wall);
+  font-family: var(--display);
+  font-size: clamp(1.25rem, 6.200vw, 1.5rem);
+  font-variation-settings: var(--display-feel);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  line-height: 1.875rem;
+  min-width: 0;
+}
+
+.deck-subtitle {
+  color: var(--on-wall-muted);
+  flex: none;
+  font-family: var(--hand);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.375rem;
+}
+
+.deck-subtitle-long {
+  display: none;
+}
+
+@media (max-width: 22.4375em) {
+  .deck-subtitle {
+    display: none;
+  }
+}
+
+@media (min-width: 60em) {
+  .deck-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0;
+    justify-content: center;
+  }
+
+  .deck-title {
+    font-size: 1.875rem;
+    line-height: 2.125rem;
+  }
+
+  .deck-subtitle {
+    font-size: 1.375rem;
+    line-height: 1.5rem;
+  }
+
+  .deck-subtitle-long {
+    display: inline;
+  }
+
+  .deck-subtitle-short {
+    display: none;
+  }
+}
+
+.filter-button {
+  align-items: center;
+  backdrop-filter: blur(14px);
+  background: var(--surface);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--surface-line);
+  color: var(--surface-strong);
+  cursor: pointer;
+  display: inline-flex;
+  flex: none;
+  font-size: 0.875rem;
+  font-weight: 800;
+  gap: 7px;
+  height: var(--control);
+  justify-content: center;
+  min-width: var(--control);
+  padding-inline: 12px;
+  transition: transform 180ms cubic-bezier(0.3, 1.6, 0.5, 1), background-color 900ms ease;
+}
+
+.filter-button:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.filter-button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.filter-button-label {
+  display: none;
+}
+
+@media (min-width: 60em) {
+  .filter-button-label {
+    display: inline;
+  }
+
+  .filter-button {
+    padding-inline: 14px;
+  }
+}
+
+.filter-count {
+  background: var(--coral);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  min-width: 18px;
+  padding-inline: 5px;
+  text-align: center;
+}
+
+/* The filter sheet rises from the bottom on phones and sits in the middle on wide screens */
+
+.filter-sheet {
+  background: transparent;
+  border: 0;
+  color: var(--pen);
+  height: auto;
+  inset: auto 0 0;
+  margin: 0;
+  max-height: 100dvh;
+  max-width: none;
+  padding: 0;
+  position: fixed;
+  width: 100%;
+}
+
+.filter-sheet::backdrop {
+  background: rgb(6 10 48 / 58%);
+}
+
+.filter-panel:focus {
+  outline: none;
+}
+
+.filter-panel {
+  background: var(--paper);
+  border-radius: 26px 26px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-inline: auto;
+  max-height: 88dvh;
+  max-width: 30rem;
+  overflow: auto;
+  padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+}
+
+.filter-sheet[open] .filter-panel {
+  animation: sheet-rise 280ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes sheet-rise {
+  from { transform: translateY(40px); opacity: 0; }
+}
+
+@media (min-width: 40em) {
+  .filter-sheet {
+    height: fit-content;
+    inset: 0;
+    margin: auto;
+    max-width: 30rem;
+    width: calc(100% - 32px);
+  }
+
+  .filter-panel {
+    border-radius: 26px;
+    padding-bottom: 18px;
+  }
+}
+
+.filter-top {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.filter-title {
+  font-family: var(--display);
+  font-size: 1.625rem;
+  font-variation-settings: var(--display-feel);
+  font-weight: 600;
+  line-height: 2rem;
+}
+
+.filter-field {
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.filter-label {
+  color: var(--pen-muted);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.filter-field select {
+  appearance: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1.500l6 6 6-6' fill='none' stroke='%2318205f' stroke-width='2.200' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right 14px center no-repeat,
+    #fff;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1.500px var(--rule);
+  color: var(--pen);
+  font-size: 1rem;
   font-weight: 700;
+  min-height: 48px;
+  padding: 0 38px 0 14px;
+  width: 100%;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.filter-chip {
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.500px var(--rule);
+  color: var(--pen);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 700;
+  min-height: 40px;
+  padding-inline: 14px;
+}
+
+.filter-chip[aria-pressed="true"] {
+  background: var(--pen);
+  box-shadow: none;
+  color: #fff;
+}
+
+.filter-actions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 2fr;
+  margin-top: 4px;
 }
 
 /* The deck */
@@ -155,7 +549,7 @@ body {
   flex: 1;
   margin-block-start: var(--scene-band);
   margin-inline: auto;
-  max-height: 42rem;
+  max-height: 48rem;
   max-width: 26rem;
   min-height: 0;
   position: relative;
@@ -163,52 +557,222 @@ body {
 }
 
 .deck-slot {
-  inset: 0;
+  inset: 0 0 var(--stack-peek);
   position: absolute;
+  transform-origin: 50% 100%;
+}
+
+.deck-lift {
+  height: 100%;
+}
+
+/* Cards waiting behind dim a little, so the active one stands forward. */
+
+.deck-slot::after {
+  background: #141c63;
+  border-radius: 26px;
+  content: "";
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transition: opacity 260ms ease;
+}
+
+.deck-slot[data-depth="1"]::after {
+  opacity: 0.2;
+}
+
+.deck-slot[data-depth="2"]::after {
+  opacity: 0.42;
 }
 
 .deck-status {
-  color: var(--on-ink);
-  flex-shrink: 0;
-  font-size: 14px;
-  line-height: 20px;
-  min-height: 20px;
+  background: var(--ink-deep);
+  border-radius: 999px;
+  box-shadow: 0 8px 22px rgb(4 7 40 / 45%);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  left: 50%;
+  line-height: 1.125rem;
+  max-width: calc(100% - 24px);
+  padding: 7px 14px;
+  pointer-events: none;
+  position: absolute;
   text-align: center;
+  top: 14px;
+  transform: translateX(-50%);
+  width: max-content;
+  z-index: 5;
 }
 
+.deck-status:empty {
+  opacity: 0;
+}
+
+/* Like and Pass */
+
 .deck-actions {
-  display: flex;
+  display: grid;
   flex-shrink: 0;
   gap: 12px;
+  grid-template-columns: 1fr 1fr;
   margin-inline: auto;
   max-width: 26rem;
-  padding-bottom: 12px;
+  padding-bottom: 8px;
   width: 100%;
 }
 
+.action {
+  align-items: center;
+  border-radius: 999px;
+  cursor: pointer;
+  display: flex;
+  font-size: 1.125rem;
+  font-weight: 800;
+  gap: 10px;
+  min-height: 60px;
+  padding: 6px 16px 6px 6px;
+  position: relative;
+  transition:
+    transform 200ms cubic-bezier(0.3, 1.7, 0.5, 1),
+    box-shadow 200ms ease,
+    opacity 200ms ease;
+}
+
+.action-orb {
+  align-items: center;
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgb(16 20 80 / 22%);
+  display: flex;
+  flex: none;
+  height: 48px;
+  justify-content: center;
+  transition: transform 240ms cubic-bezier(0.3, 1.9, 0.5, 1);
+  width: 48px;
+}
+
+.action-key {
+  border-radius: 7px;
+  box-shadow: inset 0 0 0 1.500px currentColor;
+  display: none;
+  font-family: var(--ui);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  line-height: 1.375rem;
+  margin-left: auto;
+  text-align: center;
+  width: 26px;
+}
+
+@media (hover: hover) and (min-width: 60em) {
+  .action-key {
+    display: block;
+  }
+}
+
+.action-pass {
+  background: linear-gradient(135deg, var(--lavender), var(--lavender-deep));
+  box-shadow: 0 10px 24px rgb(16 22 92 / 30%), inset 0 1px 0 rgb(255 255 255 / 80%);
+  color: #252e7c;
+}
+
+.action-pass .action-orb {
+  background: #fff;
+  color: #3a44a6;
+}
+
+.action-like {
+  background: linear-gradient(135deg, var(--coral), var(--coral-deep));
+  box-shadow: 0 10px 26px rgb(226 58 90 / 42%), inset 0 1px 0 rgb(255 255 255 / 30%);
+  color: #fff;
+}
+
+.action-like .action-orb {
+  background: #fff;
+  color: var(--coral);
+}
+
+@media (hover: hover) {
+  .action-pass:hover:not([aria-disabled="true"]) {
+    box-shadow: 0 12px 32px rgb(150 162 255 / 55%), inset 0 1px 0 rgb(255 255 255 / 80%);
+    transform: translateY(-2px);
+  }
+
+  .action-like:hover:not([aria-disabled="true"]) {
+    box-shadow: 0 12px 36px rgb(255 88 120 / 62%), inset 0 1px 0 rgb(255 255 255 / 30%);
+    transform: translateY(-2px);
+  }
+
+  .action:hover:not([aria-disabled="true"]) .action-orb {
+    transform: scale(1.07);
+  }
+}
+
+.action:active:not([aria-disabled="true"]) {
+  transform: scale(0.96);
+}
+
+.action:active:not([aria-disabled="true"]) .action-orb {
+  transform: scale(0.84);
+}
+
+.action[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.62;
+}
+
+.heart-burst {
+  color: #ff6f8c;
+  height: 0;
+  left: 32px;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  width: 0;
+}
+
+.burst-heart {
+  animation: heart-burst 760ms cubic-bezier(0.15, 0.7, 0.3, 1) both;
+  height: 22px;
+  left: -11px;
+  position: absolute;
+  top: -11px;
+  width: 22px;
+}
+
+@keyframes heart-burst {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.3); }
+  18% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--turn)) scale(1); }
+}
+
+/* Plain buttons, used on quiet screens */
+
 .button {
   align-items: center;
-  border-radius: 12px;
+  border-radius: 999px;
   cursor: pointer;
   display: inline-flex;
   flex: 1;
-  font-size: 19px;
-  font-stretch: 92%;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 800;
   gap: 8px;
   justify-content: center;
-  min-height: 52px;
-  padding-inline: 18px;
-  transition: transform 120ms ease;
+  min-height: 50px;
+  padding-inline: 20px;
+  transition: transform 180ms cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 
 .button:active:not(:disabled) {
-  transform: translateY(1px) scale(0.98);
+  transform: scale(0.97);
 }
 
 .button:disabled {
   cursor: default;
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
 .button-paper {
@@ -216,9 +780,14 @@ body {
   color: var(--pen);
 }
 
-.button-red {
-  background: var(--letterbox);
+.button-ink {
+  background: var(--pen);
   color: #fff;
+}
+
+.button-quiet {
+  background: var(--paper-tint);
+  color: var(--pen);
 }
 
 .button-outline {
@@ -226,24 +795,19 @@ body {
   color: #fff;
 }
 
-.button-fit {
-  flex: none;
-}
-
-/* A profile, written as an inland letter */
+/* A profile: a postcard with a large stamp for a portrait */
 
 .letter {
   background: var(--paper);
-  border-radius: 6px;
-  box-shadow: 0 10px 26px rgb(9 13 58 / 45%);
+  border-radius: 26px;
+  box-shadow: var(--card-shadow);
   color: var(--pen);
+  container-type: size;
   cursor: grab;
   display: flex;
   flex-direction: column;
-  gap: 6px;
   height: 100%;
   overflow: hidden;
-  padding: 18px 20px 16px;
   position: relative;
   user-select: none;
   -webkit-user-select: none;
@@ -253,179 +817,331 @@ body {
   cursor: grabbing;
 }
 
-.letter::before {
-  border: 1.5px solid var(--rule);
-  border-radius: 3px;
+.letter-stamp {
+  flex: 1;
+  filter: drop-shadow(0 3px 5px rgb(24 32 95 / 20%));
+  min-height: 0;
+  padding: 8px 8px 0;
+}
+
+.stamp {
+  --edge: linear-gradient(#000 0 0) center / calc(100% - 12px) calc(100% - 12px) no-repeat,
+    radial-gradient(circle at 50% 0, #0000 3.500px, #000 4px) 0 0 / 12px 6px round no-repeat,
+    radial-gradient(circle at 50% 100%, #0000 3.500px, #000 4px) 0 100% / 12px 6px round no-repeat,
+    radial-gradient(circle at 0 50%, #0000 3.500px, #000 4px) 0 0 / 6px 12px no-repeat round,
+    radial-gradient(circle at 100% 50%, #0000 3.500px, #000 4px) 100% 0 / 6px 12px no-repeat round;
+  -webkit-mask: var(--edge);
+  background: var(--stamp-paper);
+  height: 100%;
+  mask: var(--edge);
+  padding: 9px;
+  width: 100%;
+}
+
+.stamp-frame {
+  filter: drop-shadow(0 2px 3px rgb(18 26 88 / 30%));
+}
+
+.stamp-frame .stamp img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.stamp-photo {
+  border-radius: 10px;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.stamp-photo img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 20%;
+  pointer-events: none;
+  width: 100%;
+}
+
+/* Dark only behind the name, so the props people are holding keep their colour. */
+
+.stamp-photo::after {
+  background: linear-gradient(to top, rgb(12 15 60 / 88%), rgb(12 15 60 / 68%) 2.75rem, rgb(12 15 60 / 22%) 4.5rem, transparent 6rem);
   content: "";
-  inset: 7px;
+  inset: 0;
+  -webkit-mask-image: linear-gradient(to right, #000 64%, rgb(0 0 0 / 18%));
+  mask-image: linear-gradient(to right, #000 64%, rgb(0 0 0 / 18%));
   pointer-events: none;
   position: absolute;
 }
 
-.letter-stamp {
+.letter-cancel {
+  color: #fff;
+  height: 70px;
+  opacity: 0.62;
+  position: absolute;
+  right: 8px;
+  rotate: 11deg;
+  top: 8px;
+  width: 70px;
+  z-index: 1;
+}
+
+.letter-plate {
+  align-items: flex-end;
+  bottom: 8px;
   display: flex;
-  flex: 1;
-  justify-content: center;
-  min-height: 72px;
-  padding: 4px 6px 2px;
-}
-
-.letter-stamp .stamp-frame {
-  aspect-ratio: 4 / 5;
-  height: 100%;
-  max-width: 100%;
-  rotate: 1.5deg;
-}
-
-.letter-to {
-  color: var(--pen-muted);
-  font-family: var(--hand);
-  font-size: 15px;
-  line-height: 16px;
+  gap: 8px;
+  justify-content: space-between;
+  left: 14px;
+  position: absolute;
+  right: 8px;
+  z-index: 1;
 }
 
 .letter-name {
   align-items: baseline;
+  color: #fff;
   display: flex;
+  flex-wrap: wrap;
   font-family: var(--display);
-  font-size: 40px;
-  font-weight: 400;
-  gap: 9px;
-  letter-spacing: -0.005em;
-  line-height: 44px;
+  font-size: 2.5rem;
+  font-variation-settings: var(--display-feel);
+  font-weight: 600;
+  gap: 10px;
+  letter-spacing: -0.015em;
+  line-height: 2.75rem;
+  min-width: 0;
+  text-shadow: 0 2px 10px rgb(8 10 44 / 70%);
+}
+
+.letter-more {
+  align-items: center;
+  background: rgb(255 255 255 / 92%);
+  border-radius: 50%;
+  box-shadow: 0 3px 10px rgb(8 10 44 / 40%);
+  color: var(--pen);
+  cursor: pointer;
+  display: flex;
+  flex: none;
+  height: var(--control);
+  justify-content: center;
+  transition: transform 180ms cubic-bezier(0.3, 1.6, 0.5, 1);
+  width: var(--control);
+}
+
+.letter-more:active {
+  transform: scale(0.9);
 }
 
 .letter-age {
-  border: 1.5px solid currentColor;
-  border-radius: 3px;
-  font-family: var(--font-anek), sans-serif;
-  font-size: 17px;
-  font-stretch: 80%;
-  font-weight: 700;
-  line-height: 20px;
-  padding: 1px 6px 0;
-  position: relative;
-  top: -8px;
+  font-size: 1.6875rem;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.letter-body {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 7px;
+  padding: 9px 16px 14px;
 }
 
 .letter-place {
   color: var(--pen-muted);
   display: flex;
-  flex-direction: column;
-  font-size: 15px;
-  font-stretch: 92%;
-  font-weight: 500;
-  line-height: 19px;
+  flex-wrap: wrap;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  gap: 3px 14px;
+  line-height: 1.125rem;
+}
+
+.letter-place li {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+}
+
+.letter-place svg {
+  color: var(--coral);
+  flex: none;
 }
 
 .letter-college {
   color: var(--pen);
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .letter-bio {
-  background-image: repeating-linear-gradient(transparent 0 25px, var(--rule) 25px 26px);
+  background: var(--paper-tint);
+  /* A transparent border, because padding would show the top of a line cut off by the clamp. */
+  border-block: 6px solid transparent;
+  border-radius: 12px;
+  color: var(--pen);
+  display: -webkit-box;
   font-family: var(--hand);
-  font-size: 19px;
-  line-height: 26px;
+  font-size: 1.3125rem;
+  font-weight: 600;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  line-height: 1.4375rem;
+  overflow: hidden;
+  padding-inline: 11px;
 }
 
 .letter-interests {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 5px;
+  gap: 5px;
 }
 
 .letter-interests li {
-  background: rgb(255 255 255 / 42%);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  color: var(--pen);
-  font-size: 13px;
-  font-stretch: 86%;
-  font-weight: 600;
-  line-height: 18px;
-  padding: 1px 7px 0;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1rem;
+  padding: 4px 10px;
+}
+
+.chip-0 { background: #ffe4dc; color: #85291b; }
+.chip-1 { background: #e9e3ff; color: #41308c; }
+.chip-2 { background: #d8f3e5; color: #15553d; }
+.chip-3 { background: #d9edff; color: #164a7c; }
+.chip-4 { background: #fff0c4; color: #664600; }
+
+/* Short cards show one row of interests and less of the bio. The full postcard has the rest. */
+
+@container (max-height: 33.75rem) {
+  .letter-bio {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .letter-interests {
+    max-height: 1.5rem;
+    overflow: hidden;
+  }
+
+  .letter-body {
+    gap: 6px;
+    padding-bottom: 11px;
+  }
+}
+
+@container (max-height: 20rem) {
+  .letter-bio {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+}
+
+@container (max-height: 21.5625rem) {
+  .letter-name {
+    font-size: 2rem;
+    line-height: 2.25rem;
+  }
+
+  .letter-age {
+    font-size: 1.4375rem;
+  }
+}
+
+
+/* The stamps and colour that appear while dragging */
+
+.letter-wash {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.letter-wash-like {
+  background: linear-gradient(120deg, rgb(226 58 90 / 30%), transparent 62%);
+}
+
+.letter-wash-pass {
+  background: linear-gradient(240deg, rgb(70 80 190 / 30%), transparent 62%);
 }
 
 .letter-mark {
-  height: 138px;
+  background: rgb(255 255 255 / 90%);
+  border-radius: 50%;
+  box-shadow: 0 8px 20px rgb(12 16 70 / 30%);
+  height: 124px;
+  padding: 5px;
   pointer-events: none;
   position: absolute;
-  top: 22px;
-  width: 138px;
+  top: 24px;
+  width: 124px;
 }
 
 .letter-mark-like {
-  color: var(--letterbox);
-  left: 18px;
+  color: var(--coral);
+  left: 22px;
   rotate: -14deg;
 }
 
 .letter-mark-pass {
-  color: var(--pen);
-  right: 18px;
+  color: #3a44a6;
+  right: 22px;
   rotate: 12deg;
 }
 
-@media (max-height: 560px) {
-  .letter {
-    display: grid;
-    column-gap: 16px;
-    grid-template-columns: 38% 1fr;
-    grid-template-rows: auto auto 1fr;
-  }
+/* Loading */
 
-  .letter-stamp {
-    grid-row: 1 / 4;
-    min-height: 0;
-  }
-
-  .letter-stamp .stamp-frame {
-    height: auto;
-    width: 100%;
-  }
-
-  .letter-to,
-  .letter-interests {
-    display: none;
-  }
-
-  .letter-name {
-    font-size: 28px;
-    line-height: 32px;
-  }
-
-  .letter-age {
-    top: -4px;
-  }
+.deck-skeleton {
+  inset: 0 0 var(--stack-peek);
+  position: absolute;
 }
 
-/* The perforated edge is cut with a mask, one strip of holes per side. */
-
-.stamp-frame {
-  filter: drop-shadow(0 2px 3px rgb(18 26 88 / 35%));
+.skeleton-card {
+  background: var(--paper);
+  border-radius: 26px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  inset: 0;
+  overflow: hidden;
+  padding: 14px 14px 20px;
+  position: absolute;
 }
 
-.stamp {
-  --edge: linear-gradient(#000 0 0) center / calc(100% - 16px) calc(100% - 16px) no-repeat,
-    radial-gradient(circle at 50% 0, #0000 4px, #000 4.5px) 0 0 / 14px 8px round no-repeat,
-    radial-gradient(circle at 50% 100%, #0000 4px, #000 4.5px) 0 100% / 14px 8px round no-repeat,
-    radial-gradient(circle at 0 50%, #0000 4px, #000 4.5px) 0 0 / 8px 14px no-repeat round,
-    radial-gradient(circle at 100% 50%, #0000 4px, #000 4.5px) 100% 0 / 8px 14px no-repeat round;
-  -webkit-mask: var(--edge);
-  background: var(--stamp-paper);
-  height: 100%;
-  mask: var(--edge);
-  padding: 10px;
-  width: 100%;
+.skeleton-card-back {
+  opacity: 0.55;
+  transform: translateY(10px) scale(0.95);
+  transform-origin: 50% 100%;
 }
 
-.stamp img {
-  display: block;
-  height: 100%;
-  object-fit: cover;
-  width: 100%;
+.skeleton-photo,
+.skeleton-line {
+  animation: skeleton-glow 1.3s ease-in-out infinite alternate;
+  background: var(--rule);
+  border-radius: 12px;
+}
+
+.skeleton-photo {
+  flex: 1;
+}
+
+.skeleton-line {
+  flex: none;
+  height: 16px;
+  width: 72%;
+}
+
+.skeleton-line-short {
+  width: 46%;
+}
+
+@keyframes skeleton-glow {
+  to { opacity: 0.45; }
 }
 
 /* Quiet states on a sheet of paper */
@@ -433,7 +1149,8 @@ body {
 .sheet {
   align-items: flex-start;
   background: var(--paper);
-  border-radius: 6px;
+  border-radius: 26px;
+  box-shadow: var(--card-shadow);
   color: var(--pen);
   display: flex;
   flex-direction: column;
@@ -442,27 +1159,67 @@ body {
   padding: 28px 24px;
 }
 
+/* A quiet state is only as tall as what it has to say. */
+
 .deck-stage .sheet {
-  height: 100%;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 44%;
+  transform: translateY(-50%);
+}
+
+.sheet-art {
+  height: 96px;
+  margin-bottom: 6px;
+  width: 150px;
 }
 
 .sheet-title {
   font-family: var(--display);
-  font-size: 34px;
-  font-weight: 400;
-  line-height: 40px;
+  font-size: 2rem;
+  font-variation-settings: var(--display-feel);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  line-height: 2.375rem;
 }
 
 .sheet-text {
   color: var(--pen-muted);
-  font-size: 17px;
-  line-height: 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5rem;
   max-width: 34ch;
 }
 
 .sheet .button {
   flex: none;
   margin-top: 10px;
+}
+
+.sheet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.sheet-actions .button {
+  flex: 1 1 auto;
+  margin-top: 0;
+}
+
+.sheet-actions .button[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.sheet-error {
+  color: var(--coral-deep);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.375rem;
 }
 
 .sheet .button-paper {
@@ -472,26 +1229,65 @@ body {
 
 /* Matches: an album of postmarked stamps */
 
+.panel-album {
+  justify-content: flex-start;
+}
+
+.album-head {
+  align-items: baseline;
+  display: flex;
+  flex-shrink: 0;
+  gap: 10px;
+  justify-content: space-between;
+  padding-block: 8px 6px;
+}
+
+.album-title {
+  color: var(--on-wall);
+  font-family: var(--display);
+  font-size: 1.75rem;
+  font-variation-settings: var(--display-feel);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  line-height: 2.125rem;
+}
+
+.album-count {
+  color: var(--on-wall-muted);
+  flex: none;
+  font-family: var(--hand);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+}
+
 .album {
   display: grid;
-  gap: 18px 14px;
+  gap: 16px 14px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  padding-bottom: 16px;
 }
+
+/* The padding gives the cards' shadows room, so the scroll area doesn't cut them off. */
 
 .album-scroll {
   flex: 1;
+  margin-inline: -16px;
   min-height: 0;
   overflow: clip auto;
+  padding: 6px 16px 28px;
 }
 
-@media (min-width: 640px) {
+.album li {
+  display: flex;
+}
+
+@media (min-width: 40em) {
   .album {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 900px) {
+@media (min-width: 56.25em) {
   .album {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -499,57 +1295,132 @@ body {
 
 .album-item {
   background: var(--paper);
-  border-radius: 6px;
+  border-radius: 20px;
+  box-shadow: 0 10px 22px rgb(6 10 56 / 26%), 0 2px 5px rgb(6 10 56 / 16%);
   color: var(--pen);
-  padding: 12px 12px 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 10px 10px 16px;
   position: relative;
+  text-align: left;
+  transition: transform 200ms cubic-bezier(0.3, 1.6, 0.5, 1);
+  width: 100%;
+}
+
+@media (hover: hover) {
+  .album-item:hover {
+    transform: translateY(-3px);
+  }
+}
+
+.album-item:active {
+  transform: scale(0.97);
 }
 
 .album-item .stamp-frame {
   aspect-ratio: 1;
 }
 
-.album-mark {
-  color: var(--letterbox);
-  height: 64px;
+.album-seal {
+  bottom: 8px;
+  color: var(--coral);
+  height: 22px;
   position: absolute;
-  right: 3px;
-  rotate: 14deg;
-  top: 3px;
-  width: 64px;
+  right: 10px;
+  rotate: 10deg;
+  width: 22px;
 }
 
 .album-name {
   align-items: baseline;
   display: flex;
   font-family: var(--display);
-  font-size: 24px;
-  font-weight: 400;
+  font-size: 1.4375rem;
+  font-variation-settings: var(--display-feel);
+  font-weight: 600;
   gap: 6px;
-  line-height: 28px;
+  line-height: 1.75rem;
   margin-top: 8px;
 }
 
 .album-age {
-  font-family: var(--font-anek), sans-serif;
-  font-size: 15px;
-  font-stretch: 82%;
-  font-weight: 700;
+  font-size: 1.0625rem;
+  font-weight: 400;
 }
 
 .album-place {
   color: var(--pen-muted);
-  font-size: 13.5px;
-  font-stretch: 92%;
-  font-weight: 500;
-  line-height: 18px;
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.125rem;
+  padding-right: 30px;
+}
+
+/* The full postcard */
+
+.postcard-panel {
+  gap: 9px;
+  position: relative;
+}
+
+.postcard-close {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  z-index: 2;
+}
+
+.postcard-portrait {
+  aspect-ratio: 1;
+  filter: drop-shadow(0 3px 5px rgb(24 32 95 / 20%));
+  flex: none;
+  margin-inline: auto;
+  max-width: 100%;
+  width: min(100%, 44dvh);
+}
+
+.postcard-portrait .stamp-photo::after {
+  display: none;
+}
+
+.postcard-name {
+  align-items: baseline;
+  display: flex;
+  font-family: var(--display);
+  font-size: 2.25rem;
+  font-variation-settings: var(--display-feel);
+  font-weight: 600;
+  gap: 10px;
+  letter-spacing: -0.015em;
+  line-height: 2.5rem;
+}
+
+.postcard-note {
+  color: var(--coral-deep);
+  font-family: var(--hand);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+}
+
+.postcard-bio {
+  background: var(--paper-tint);
+  border-radius: 12px;
+  font-family: var(--hand);
+  font-size: 1.4375rem;
+  font-weight: 600;
+  line-height: 1.6875rem;
+  padding: 9px 12px;
 }
 
 /* It's a match! */
 
 .match {
   align-items: center;
-  background: var(--letterbox);
+  background: linear-gradient(160deg, var(--coral), var(--letterbox-deep));
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -585,8 +1456,10 @@ body {
 
 .match-title {
   font-family: var(--display);
-  font-size: clamp(50px, 14.5vw, 84px);
-  font-weight: 400;
+  font-size: clamp(2.875rem, 13vw, 4.75rem);
+  font-variation-settings: var(--display-feel);
+  font-weight: 600;
+  letter-spacing: -0.015em;
   line-height: 1.05;
   margin-top: 34px;
   position: relative;
@@ -594,8 +1467,9 @@ body {
 
 .match-text {
   font-family: var(--hand);
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 1.625rem;
+  font-weight: 600;
+  line-height: 1.875rem;
   margin-top: 6px;
   position: relative;
 }
@@ -617,4 +1491,161 @@ body {
 .match-actions .button-paper {
   background: #fff;
   color: var(--letterbox-deep);
+}
+
+/* Very short screens, such as a phone on its side or a page zoomed far in */
+
+@media (max-height: 31.25em) {
+  :root {
+    --stack-peek: 12px;
+  }
+
+  .deck-head {
+    display: none;
+  }
+
+  /* Nothing is out of reach: the page scrolls if the card and buttons don't fit. */
+
+  .discover {
+    overflow-y: auto;
+  }
+
+  .panel {
+    flex: none;
+    gap: 8px;
+  }
+
+  .deck-stage {
+    flex: none;
+    height: 20rem;
+    max-height: none;
+  }
+
+  .action {
+    min-height: 3.25rem;
+    padding: 3px 12px 3px 3px;
+  }
+
+  .action-orb {
+    height: 2.75rem;
+    width: 2.75rem;
+  }
+}
+
+/* With enough width, the portrait sits beside the details and the buttons beside the card. */
+
+@media (max-height: 31.25em) and (min-width: 37.5em) {
+  .topbar,
+  .panel {
+    align-self: center;
+    max-width: 44rem;
+    width: 100%;
+  }
+
+  .panel:not(.panel-album) {
+    display: grid;
+    flex: 1;
+    gap: 12px;
+    grid-template-columns: minmax(0, 1fr) 8.5rem;
+    min-height: 13rem;
+  }
+
+  .deck-stage {
+    height: auto;
+    max-width: none;
+  }
+
+  .deck-actions {
+    align-content: center;
+    grid-template-columns: 1fr;
+    max-width: none;
+    padding-bottom: var(--stack-peek);
+  }
+
+  .letter {
+    flex-direction: row;
+  }
+
+  .letter-stamp {
+    flex: 0 0 42%;
+    padding-bottom: 8px;
+  }
+
+  .letter-body {
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+    padding: 10px 14px 10px 10px;
+  }
+
+  .letter-bio {
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+
+  .letter-interests {
+    max-height: none;
+  }
+
+  .letter-name {
+    font-size: 1.625rem;
+    gap: 6px;
+    line-height: 1.875rem;
+  }
+
+  .letter-age {
+    font-size: 1.1875rem;
+  }
+
+  .letter-cancel {
+    display: none;
+  }
+}
+
+/* High-contrast modes remove backgrounds, so shapes need real outlines. */
+
+@media (forced-colors: active) {
+  .action,
+  .letter-more,
+  .letter-interests li,
+  .filter-chip,
+  .segment[aria-current="page"] {
+    border: 2px solid ButtonText;
+  }
+
+  .letter-bio {
+    border-color: Canvas;
+  }
+
+  .letter-interests {
+    max-height: none;
+  }
+
+  .deck-slot::after {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heart-burst {
+    display: none;
+  }
+
+  .action,
+  .action-orb,
+  .round-control,
+  .filter-button,
+  .button,
+  .deck-slot::after,
+  body,
+  .tabbar,
+  .segments {
+    transition: none;
+  }
+
+  .filter-sheet[open] .filter-panel,
+  .skeleton-photo,
+  .skeleton-line {
+    animation: none;
+  }
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ME_ID } from "@/lib/server/database";
 import { getFeed, getMatches, recordSwipe } from "@/lib/server/discover";
-import { LIKER_COUNT } from "@/lib/server/seed";
+import { LIKER_COUNT, startOver } from "@/lib/server/seed";
 import { SEED_PROFILES } from "@/lib/server/seed-profiles";
 import { shuffle } from "@/lib/random";
 import {
@@ -15,6 +15,32 @@ import {
 } from "./helpers";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
+describe("starting over", () => {
+  it("clears the user's swipes and matches and keeps every profile", () => {
+    const db = freshDb();
+    const ids = allProfileIds(db).sort();
+    recordSwipe(db, ME_ID, likerIds(db)[0], "like");
+    recordSwipe(db, ME_ID, nonLikerIds(db)[0], "pass");
+
+    startOver(db, seededRng(2));
+
+    expect(allProfileIds(db).sort()).toEqual(ids);
+    expect(getFeed(db, ME_ID)).toHaveLength(SEED_PROFILES.length);
+    expect(getMatches(db, ME_ID)).toEqual([]);
+    expect(count(db, "matches")).toBe(0);
+    expect(count(db, "swipes")).toBe(LIKER_COUNT);
+  });
+
+  it("picks new likers, so an earlier run doesn't give the answers away", () => {
+    const db = freshDb(1);
+    const before = likerIds(db).sort();
+    startOver(db, seededRng(99));
+    const after = likerIds(db).sort();
+    expect(after).toHaveLength(LIKER_COUNT);
+    expect(after).not.toEqual(before);
+  });
+});
 
 describe("seed", () => {
   it("creates every seeded profile with a random UUID and some likes of the user", () => {

@@ -87,14 +87,15 @@ flowchart LR
 
 ## 3. Server modules
 
-Every module that touches the database or the seed starts with `import "server-only"`, so the build fails if browser code imports one ([ADR-004](adr/004-nextjs-route-handlers-server-only.md)). Only `types.ts` and `random.ts` are safe for the browser. All three routes, and `seed.ts`, also read `ME_ID` from `database.ts`; those arrows are left out to keep the picture readable.
+Every module that touches the database or the seed starts with `import "server-only"`, so the build fails if browser code imports one ([ADR-004](adr/004-nextjs-route-handlers-server-only.md)). Only `types.ts` and `random.ts` are safe for the browser. All the routes, and `seed.ts`, also read `ME_ID` from `database.ts`; those arrows are left out to keep the picture readable.
 
 ```mermaid
 flowchart TB
-    subgraph Routes["src/app/api: the three route handlers"]
+    subgraph Routes["src/app/api: the four route handlers"]
         Feed["feed/route.ts<br/>GET"]
         Swipe["swipe/route.ts<br/>POST, validates the body"]
         Matches["matches/route.ts<br/>GET"]
+        ResetRoute["reset/route.ts<br/>POST, same site only"]
     end
 
     subgraph Server["src/lib/server: server-only"]
@@ -102,7 +103,7 @@ flowchart TB
         Discover["discover.ts<br/>getFeed, recordSwipe, getMatches,<br/>toPublicProfile (the allowlist)"]
         Http["http.ts<br/>error shape, no-store header"]
         Database["database.ts<br/>schema, ME_ID, openDatabase"]
-        Seed["seed.ts<br/>random UUIDs, 8 random likers"]
+        Seed["seed.ts<br/>random UUIDs, 8 random likers,<br/>startOver"]
         Profiles["seed-profiles.ts<br/>30 fictional profiles"]
     end
 
@@ -311,7 +312,7 @@ sequenceDiagram
 
 ## 11. Seeding and reset
 
-The database creates and seeds itself, so a reviewer only runs `npm install` and `npm run dev`. Ids and likers are new on every seed ([ADR-005](adr/005-random-ids-likers-at-seed-time-shuffled-feed.md)).
+The database creates and seeds itself, so a reviewer only runs `npm install` and `npm run dev`. Ids and likers are new on every seed ([ADR-005](adr/005-random-ids-likers-at-seed-time-shuffled-feed.md)). **Start over** at the end of the deck replays the demo without restarting anything ([ADR-014](adr/014-start-over-from-the-app.md)).
 
 ```mermaid
 flowchart TD
@@ -327,6 +328,8 @@ flowchart TD
     Log --> Use
     Reset(["npm run reset"]) --> Delete["delete data/coy.db"]
     Delete -. "on the next request" .-> Get
+    StartOver(["Start over in the app"]) --> Post["POST /api/reset"]
+    Post --> Clear["in one transaction: delete all swipes and matches,<br/>pick 8 new likers, keep the profiles"]
 ```
 
 ## 12. Ways a like could leak, and what stops each one
@@ -341,9 +344,9 @@ flowchart TD
 | Like, see the match, then pass to take it back | Swipes are final; a change gets 409 | Tests: conflicts for likers and non-likers |
 | Error messages that depend on the other person | Fixed 400, 404 and 409 messages | Test: identical 409 bodies |
 | Swiping as someone else | The server fixes who "me" is; the body can't name the swiper | Test: a `fromId` in the body is ignored |
-| Guessing an endpoint such as `/likes` | Three API routes, none of which returns swipes | `next build` lists the three routes |
+| Guessing an endpoint such as `/likes` | Four API routes, none of which returns swipes; the reset route answers only `{ success: true }` | `next build` lists the four routes; a test checks the reset response |
 | Database or seed code shipped to the browser | `server-only` on every server module; only the avatars are in `public/` | A client import failed the build (2026-11-17); a scan of the built browser files found no seed data (2026-11-18) |
-| The pigeon reacting to an incoming like | The scene never receives a profile, and it holds the same pose until the server answers | Tests on its reactions; a browser run with a slowed server (2026-11-18) |
+| The owl reacting to an incoming like | The scene never receives a profile, and it waits the same way for every swipe until the server answers | Tests on its reactions and routines; browser runs with real swipes and a slowed server (2026-11-18) |
 | Timing a request | A pass never looks up their like; a like already returns the answer | Not tested; reasoned from the code |
 
 ## 13. The Discover UI
@@ -358,13 +361,19 @@ flowchart TB
     end
 
     Shell --> Tabs["TabBar<br/>Home (blank) and Discover"]
-    Shell --> Scene["DiscoverScene<br/>the pigeon, desk and star chart"]
-    Shell --> Deck["SwipeDeck<br/>top card is profiles[0], next card underneath"]
+    Shell --> Scene["DiscoverScene<br/>the owl, desk and constellation board"]
+    Shell --> Theme["ThemeControl<br/>day or night from the device's clock"]
+    Shell --> Deck["SwipeDeck<br/>three stacked cards, filtered in the browser"]
+    Deck --> Filters["FilterSheet and filters.ts<br/>location, campus and interests"]
+    Deck --> Actions["DeckActions<br/>Like, Pass and the heart burst"]
     Shell --> Album["MatchesView<br/>the Matches side of Discover"]
+    Deck --> Postcard["PostcardSheet<br/>the whole profile"]
+    Album --> Postcard
     Shell --> MatchScreen["MatchScreen<br/>only after the server says matched"]
     Deck --> Card["SwipeCard<br/>Motion drag, postmarks, fly-off"]
 
-    Scene --> Director["director.ts and mascot.ts<br/>poses, routine and reactions"]
+    Scene --> Director["director.ts and mascot.ts<br/>routine and reactions"]
+    Director --> Puppet["owl-puppet.ts and owl-rig.ts<br/>springs, wings and drawing"]
     DeckState --> Reducer["deck.ts<br/>what each event does to the deck"]
     DeckState --> Flow["swipe-flow.ts<br/>retries an unknown result"]
     Flow --> Client["api.ts<br/>reads each response"]
@@ -373,11 +382,11 @@ flowchart TB
     Client --> Api["/api/feed, /api/swipe, /api/matches"]
 ```
 
-The pigeon behind the deck hears only whether a swipe is saving and, once saved, the user's action and the server's `matched` answer ([ADR-011](adr/011-pigeon-behind-the-deck.md)).
+The owl behind the deck hears only whether a swipe is saving, whether it came back unsaved and, once saved, the user's action and the server's `matched` answer ([ADR-012](adr/012-owl-in-one-room.md)). Filters use only fields already on the card, and the room follows the device's clock ([ADR-013](adr/013-postcard-deck-and-clock-theme.md)).
 
 ## 14. A swipe in the browser
 
-The card leaves straight away, but it stays in the deck's state until the server confirms the swipe. The match screen waits for both the answer and the end of the animation.
+The card leaves straight away, but it stays in the deck's state until the server confirms the swipe. The match screen waits for the answer and the end of the animation, then gives the room 2.1 seconds to play the match.
 
 ```mermaid
 sequenceDiagram
@@ -394,6 +403,7 @@ sequenceDiagram
     C-->>H: fly-off finished
     H->>H: remove profiles[0]
     alt matched true
+        Note over H: The stars align in the room for 2.1 s.
         H-->>U: It's a match! screen
     else matched false
         H-->>U: next card unlocks
@@ -419,10 +429,10 @@ flowchart TD
 
 ## 16. Tests
 
-68 Vitest tests, run with `npm test`. Seven deliberate bugs each made tests fail before the code was restored: no shuffle, likers sorted first, a changed swipe overwriting the first, no retry, a card removed before the server answered, a 500 treated as final, and a swipe threshold of almost nothing.
+104 Vitest tests, run with `npm test`. Seven deliberate bugs each made tests fail before the code was restored: no shuffle, likers sorted first, a changed swipe overwriting the first, no retry, a card removed before the server answered, a 500 treated as final, and a swipe threshold of almost nothing.
 
 | File | Tests | What it covers |
 |---|---|---|
-| [tests/discover.test.ts](../tests/discover.test.ts) | 17 | The logic on an in-memory database: seeding, feed contents and fields, the shuffle and its fairness, every swipe rule, matches |
-| [tests/routes.test.ts](../tests/routes.test.ts) | 15 | The HTTP layer on a temporary database file: status codes, bodies, headers, a `fromId` in the body, persistence across a restart, reset |
-| [tests/client.test.ts](../tests/client.test.ts) | 36 | The browser logic: reading each response, retries, the deck's state, the swipe threshold, the pigeon's reactions, and a self-contained avatar for every profile |
+| [tests/discover.test.ts](../tests/discover.test.ts) | 19 | The logic on an in-memory database: seeding, feed contents and fields, the shuffle and its fairness, every swipe rule, matches, starting over |
+| [tests/routes.test.ts](../tests/routes.test.ts) | 19 | The HTTP layer on a temporary database file: status codes, bodies, headers, a `fromId` in the body, persistence across a restart, reset, starting over from the app |
+| [tests/client.test.ts](../tests/client.test.ts) | 66 | The browser logic: reading each response, retries, the deck's state, the swipe threshold, filters, the day and night clock, the owl's reactions, routine and wing solver, and a self-contained avatar for every profile |

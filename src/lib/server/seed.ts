@@ -23,9 +23,6 @@ export function seedDatabase(db: DatabaseSync, rng: Rng = Math.random, now: Date
     `INSERT INTO profiles (id, name, age, city, college, bio, interests, avatar_url)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
   );
-  const insertLike = db.prepare(
-    `INSERT INTO swipes (from_id, to_id, action, created_at) VALUES (?, ?, 'like', ?)`,
-  );
 
   db.exec("BEGIN");
   try {
@@ -46,12 +43,41 @@ export function seedDatabase(db: DatabaseSync, rng: Rng = Math.random, now: Date
       return id;
     });
 
-    const likers = shuffle(ids, rng).slice(0, LIKER_COUNT);
-    const at = now.toISOString();
-    for (const id of likers) insertLike.run(id, ME_ID, at);
+    const likers = addLikes(db, ids, rng, now);
 
     db.exec("COMMIT");
-    return { profiles: ids.length, likers: likers.length };
+    return { profiles: ids.length, likers };
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+}
+
+function addLikes(db: DatabaseSync, ids: string[], rng: Rng, now: Date): number {
+  const insertLike = db.prepare(
+    `INSERT INTO swipes (from_id, to_id, action, created_at) VALUES (?, ?, 'like', ?)`,
+  );
+  const likers = shuffle(ids, rng).slice(0, LIKER_COUNT);
+  const at = now.toISOString();
+  for (const id of likers) insertLike.run(id, ME_ID, at);
+  return likers.length;
+}
+
+/**
+ * Clears every swipe and match so the demo can be played again. New likers are picked, so
+ * what the user learned from the last run says nothing about who has liked them this time.
+ */
+export function startOver(db: DatabaseSync, rng: Rng = Math.random, now: Date = new Date()): void {
+  const ids = db
+    .prepare("SELECT id FROM profiles WHERE id <> ?")
+    .all(ME_ID)
+    .map((row) => String(row.id));
+
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    db.exec("DELETE FROM matches; DELETE FROM swipes;");
+    addLikes(db, ids, rng, now);
+    db.exec("COMMIT");
   } catch (error) {
     db.exec("ROLLBACK");
     throw error;

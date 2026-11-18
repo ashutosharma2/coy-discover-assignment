@@ -4,11 +4,13 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { GET as getFeedRoute } from "@/app/api/feed/route";
 import { GET as getMatchesRoute } from "@/app/api/matches/route";
+import { POST as postResetRoute } from "@/app/api/reset/route";
 import { POST as postSwipeRoute } from "@/app/api/swipe/route";
+import { LIKER_COUNT } from "@/lib/server/seed";
 import { getDb } from "@/lib/server/store";
 import { SEED_PROFILES } from "@/lib/server/seed-profiles";
 import type { FeedResponse, MatchesResponse } from "@/lib/types";
-import { likerIds, nonLikerIds, PUBLIC_FIELDS } from "./helpers";
+import { count, likerIds, nonLikerIds, PUBLIC_FIELDS } from "./helpers";
 
 let dir: string;
 
@@ -128,6 +130,48 @@ describe("GET /api/matches", () => {
 
     const { matches } = (await getMatchesRoute().json()) as MatchesResponse;
     expect(matches.map((m) => m.id)).toEqual([liker]);
+  });
+});
+
+describe("POST /api/reset", () => {
+  const reset = (headers: Record<string, string> = { "Sec-Fetch-Site": "same-origin" }) =>
+    postResetRoute(new Request("http://localhost/api/reset", { method: "POST", headers }));
+
+  it("brings every profile back and clears the user's swipes and matches", async () => {
+    const db = getDb();
+    await swipe({ profileId: likerIds(db)[0], action: "like" });
+    await swipe({ profileId: nonLikerIds(db)[0], action: "pass" });
+
+    const response = reset();
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect((await feed()).profiles).toHaveLength(SEED_PROFILES.length);
+    expect(((await getMatchesRoute().json()) as MatchesResponse).matches).toEqual([]);
+    expect(count(db, "matches")).toBe(0);
+    expect(db.prepare("SELECT COUNT(*) AS n FROM swipes WHERE from_id = 'me'").get()?.n).toBe(0);
+  });
+
+  it("says nothing about who has liked the user", async () => {
+    getDb();
+    expect(await reset().json()).toEqual({ success: true });
+  });
+
+  it("keeps eight likers ready, so the demo can still produce matches", async () => {
+    const db = getDb();
+    reset();
+    const likers = likerIds(db);
+    expect(new Set(likers).size).toBe(LIKER_COUNT);
+    const response = await swipe({ profileId: likers[0], action: "like" });
+    expect(await response.json()).toEqual({ matched: true });
+  });
+
+  it("refuses a request sent from another site and erases nothing", async () => {
+    const db = getDb();
+    await swipe({ profileId: nonLikerIds(db)[0], action: "pass" });
+    const response = reset({ "Sec-Fetch-Site": "cross-site" });
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ success: false });
+    expect((await feed()).profiles).toHaveLength(SEED_PROFILES.length - 1);
   });
 });
 

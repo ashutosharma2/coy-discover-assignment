@@ -1,24 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import { Anek_Latin, Kalam, Rozha_One } from "next/font/google";
+import { Caveat, Fraunces, Manrope } from "next/font/google";
+import { THEME_COLORS, themeScript } from "@/lib/client/theme";
 import "./globals.css";
 import "./scene.css";
 
-const rozha = Rozha_One({
-  variable: "--font-rozha",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
-  weight: "400",
+  axes: ["SOFT", "WONK", "opsz"],
 });
 
-const anek = Anek_Latin({
-  variable: "--font-anek",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
-  axes: ["wdth"],
 });
 
-const kalam = Kalam({
-  variable: "--font-kalam",
+const caveat = Caveat({
+  variable: "--font-caveat",
   subsets: ["latin"],
-  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -27,13 +26,17 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1a2472",
+  themeColor: THEME_COLORS.night,
   viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${rozha.variable} ${anek.variable} ${kalam.variable} antialiased`}>
+    // The theme is set on this element before the first paint, so React shouldn't compare it.
+    <html lang="en" className={`${fraunces.variable} ${manrope.variable} ${caveat.variable} antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>{children}</body>
     </html>
   );
