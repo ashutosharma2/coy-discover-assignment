@@ -72,7 +72,7 @@ After I'd swiped through all 30 profiles, the only way to replay the app was a t
 - **The promise holds where it can be tested.** A pass on someone who liked the user and a pass on anyone else get byte-identical responses, and a changed swipe gets the same 409 for both. Across 20 random seeds of 60 stretches of work each, the owl's routine never showed the heart.
 - **One swipe per pair, even when the code is bypassed.** The database refuses a second row. After a real server restart, the swipes and the match were still there.
 - **A lost reply doesn't lose a match.** With the first reply dropped on a like that made a match, the retry got the original answer and the match screen opened. With the network down, the card came back after 3 attempts.
-- **Tests.** 104 Vitest tests: 19 on the swipe rules, 19 on the routes and 66 on the browser logic. Seven deliberate bugs, including no shuffle and likers sorted first, each made tests fail before I restored the code.
+- **Tests.** 105 Vitest tests: 19 on the swipe rules, 20 on the routes and 66 on the browser logic. Seven deliberate bugs, including no shuffle and likers sorted first, each made tests fail before I restored the code.
 - **Screens.** Checked at 13 sizes up to 1920 × 1080, including a phone on its side, with no sideways scrolling. Every control can still be reached at 200% text size and 400% zoom.
 - **Speed, in emulation.** On an emulated slow phone and connection, the first visit downloads 493 KB and the largest element appears after 3.3 s, with almost no layout shift (0.001). Dragging held 60 frames a second with the processor slowed four times.
 - **Security check.** `npm audit` found 0 vulnerabilities on 2026-11-18.
@@ -125,6 +125,8 @@ After I'd swiped through all 30 profiles, the only way to replay the app was a t
 - **The card collapsed at 400% zoom (2026-11-18).** It shrank to 67 px tall and couldn't scroll, and every font size was fixed in pixels. Sizes now use `rem` and `em`, and short screens scroll.
 - **Large text broke the top bar (2026-11-18).** At 200% the segments overflowed and the name ran into the info button. The bar and the name now wrap.
 - **High-contrast mode lost the button shapes (2026-11-18).** Windows' forced colours remove backgrounds, and the bio's transparent border turned into black bars. Real outlines and a border colour for that mode fixed both.
+
+- **The brief's exact paths returned 404 (2026-11-19).** Reading the brief again before submitting, I saw it names `GET /feed`, `POST /swipe` and `GET /matches`, but the app only answered under `/api`. A reviewer testing the paths as written would have got nothing. A rewrite in `next.config.ts` now sends each one to the same handler, and real requests to both forms gave the same answers. Lesson: check the deliverable against the brief's exact words, not my summary of them.
 
 ### Checks that misled me
 

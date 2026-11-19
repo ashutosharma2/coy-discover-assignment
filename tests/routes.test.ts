@@ -10,6 +10,7 @@ import { LIKER_COUNT } from "@/lib/server/seed";
 import { getDb } from "@/lib/server/store";
 import { SEED_PROFILES } from "@/lib/server/seed-profiles";
 import type { FeedResponse, MatchesResponse } from "@/lib/types";
+import nextConfig from "../next.config";
 import { count, likerIds, nonLikerIds, PUBLIC_FIELDS } from "./helpers";
 
 let dir: string;
@@ -172,6 +173,16 @@ describe("POST /api/reset", () => {
     expect(response.status).toBe(403);
     expect(await response.json()).toMatchObject({ success: false });
     expect((await feed()).profiles).toHaveLength(SEED_PROFILES.length - 1);
+  });
+});
+
+describe("the brief's paths", () => {
+  it("sends /feed, /swipe and /matches to the same handlers as the /api paths", async () => {
+    expect(await nextConfig.rewrites?.()).toEqual([
+      { source: "/feed", destination: "/api/feed" },
+      { source: "/swipe", destination: "/api/swipe" },
+      { source: "/matches", destination: "/api/matches" },
+    ]);
   });
 });
 

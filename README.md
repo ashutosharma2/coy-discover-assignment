@@ -37,7 +37,7 @@ The room follows your device's clock: bright from 6:00 am to 6:30 pm, and dark t
 | A swiped profile never comes back, and the deck has an empty state | Done | [discover.ts](src/lib/server/discover.ts), [DeckEnd.tsx](src/components/DeckEnd.tsx) |
 | A match only when both sides liked, with an "It's a match!" screen | Done | [discover.ts](src/lib/server/discover.ts), [MatchScreen.tsx](src/components/MatchScreen.tsx) |
 | Matches view | Done | [MatchesView.tsx](src/components/MatchesView.tsx) |
-| `GET /feed`, `POST /swipe`, `GET /matches` | Done, under `/api` | [src/app/api](src/app/api) |
+| `GET /feed`, `POST /swipe`, `GET /matches` | Done, at those exact paths and under `/api` | [src/app/api](src/app/api), [next.config.ts](next.config.ts) |
 | Swipes and matches survive a reload | Done: stored in SQLite | [database.ts](src/lib/server/database.ts) |
 | Never reveal who liked you unless it's mutual | Done, with tests | [Privacy](#the-privacy-promise) |
 | Tried on a real phone | Not yet | [Known limits](#known-limits) |
@@ -61,7 +61,7 @@ Eight of the 30 profiles have already liked you, and they are picked at random. 
 |---|---|
 | `npm run dev` | Starts the app in development mode |
 | `npm run build` and `npm start` | Builds the app and runs the production version |
-| `npm test` | Runs the 104 tests |
+| `npm test` | Runs the 105 tests |
 | `npm run lint` | Checks the code style |
 | `npm run typecheck` | Checks the TypeScript types |
 | `npm run reset` | Deletes the local database, so the next request seeds a new one with new ids |
@@ -119,7 +119,7 @@ flowchart LR
 | `GET /api/matches` | None | `{ "matches": [...] }`: mutual matches only, newest first |
 | `POST /api/reset` | None | `{ "success": true }`: clears your swipes and matches for another run |
 
-The brief's `GET /feed`, `POST /swipe` and `GET /matches` live under `/api`, which is the Next.js convention. `POST /api/reset` is my addition for replaying the demo.
+The handlers live under `/api`, which is the Next.js convention. The brief's exact paths, `GET /feed`, `POST /swipe` and `GET /matches`, reach the same handlers through a rewrite in [next.config.ts](next.config.ts). `POST /api/reset` is my addition for replaying the demo.
 
 Errors have one shape, `{ "success": false, "message": "..." }`. The status is 400 for a bad request, 404 for an unknown profile, 409 for a changed swipe and 403 for a reset sent from another site. Repeating the same swipe is safe and returns the original answer.
 
@@ -158,7 +158,7 @@ docs/               architecture diagrams, decision records and the project stor
 
 ## Tests
 
-`npm test` runs 104 tests: 19 on the swipe rules, 19 on the HTTP routes and 66 on the browser logic. They check the promises above directly, including that a pass on someone who liked you is byte-for-byte the same as any other pass, and that only a confirmed match can show the heart.
+`npm test` runs 105 tests: 19 on the swipe rules, 20 on the HTTP routes and 66 on the browser logic. They check the promises above directly, including that a pass on someone who liked you is byte-for-byte the same as any other pass, and that only a confirmed match can show the heart.
 
 The linter, the type checker and a production build also pass. I checked the screens in a browser at 13 sizes, up to 1920 × 1080.
 

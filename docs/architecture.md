@@ -429,10 +429,10 @@ flowchart TD
 
 ## 16. Tests
 
-104 Vitest tests, run with `npm test`. Seven deliberate bugs each made tests fail before the code was restored: no shuffle, likers sorted first, a changed swipe overwriting the first, no retry, a card removed before the server answered, a 500 treated as final, and a swipe threshold of almost nothing.
+105 Vitest tests, run with `npm test`. Seven deliberate bugs each made tests fail before the code was restored: no shuffle, likers sorted first, a changed swipe overwriting the first, no retry, a card removed before the server answered, a 500 treated as final, and a swipe threshold of almost nothing.
 
 | File | Tests | What it covers |
 |---|---|---|
 | [tests/discover.test.ts](../tests/discover.test.ts) | 19 | The logic on an in-memory database: seeding, feed contents and fields, the shuffle and its fairness, every swipe rule, matches, starting over |
-| [tests/routes.test.ts](../tests/routes.test.ts) | 19 | The HTTP layer on a temporary database file: status codes, bodies, headers, a `fromId` in the body, persistence across a restart, reset, starting over from the app |
+| [tests/routes.test.ts](../tests/routes.test.ts) | 20 | The HTTP layer on a temporary database file: status codes, bodies, headers, a `fromId` in the body, persistence across a restart, reset, starting over from the app |
 | [tests/client.test.ts](../tests/client.test.ts) | 66 | The browser logic: reading each response, retries, the deck's state, the swipe threshold, filters, the day and night clock, the owl's reactions, routine and wing solver, and a self-contained avatar for every profile |

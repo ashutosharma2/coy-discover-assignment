@@ -17,6 +17,7 @@ The brief prefers Next.js, with the backend in either Next.js API routes or Expr
 
 - Next.js 16.4.6 with the App Router. One project, one `npm run dev`.
 - The API lives at `/api/feed`, `/api/swipe` and `/api/matches`, the Next.js convention, which keeps the API apart from the pages. They are the brief's `GET /feed`, `POST /swipe` and `GET /matches`.
+- Added on 2026-11-19: a rewrite in [next.config.ts](../../next.config.ts) also answers at the brief's exact paths, `/feed`, `/swipe` and `/matches`. A rewrite keeps a POST's method and body, so both forms reach the same handler.
 - Every module that touches the database or the seed lives in `src/lib/server/` and starts with `import "server-only"`. If a client component imports one, even through another file, the build fails.
 - The seed data is never in `public/`.
 - Cache Components and partial prefetching are removed from `next.config.ts`. Every API response also sends `Cache-Control: no-store`.
